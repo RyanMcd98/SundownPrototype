@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
 
 UCLASS()
@@ -33,6 +34,8 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseLookUpRate;
+
+	UParticleSystemComponent* OurParticleSystem;
 
 protected:
 	/**

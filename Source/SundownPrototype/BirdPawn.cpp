@@ -31,10 +31,16 @@ ABirdPawn::ABirdPawn()
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	// Don't rotate when the controller rotates. Let that just affect the camera.
-	//bUseControllerRotationPitch = false;
-	//bUseControllerRotationYaw = false;
-	//bUseControllerRotationRoll = false;
+	 // Create a particle system
+	OurParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
+	OurParticleSystem->SetupAttachment(RootComponent);
+	OurParticleSystem->bAutoActivate = true;
+	OurParticleSystem->SetRelativeLocation(FVector(-250.0f, 0.0f, 20.0f));
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
+	if (ParticleAsset.Succeeded())
+	{
+		OurParticleSystem->SetTemplate(ParticleAsset.Object);
+	}
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
