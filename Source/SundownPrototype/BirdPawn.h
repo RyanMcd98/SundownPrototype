@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Developed by Gary Whittle and Scott Douglas, based on Unreal's Flight Example Project
 
 #pragma once
 
@@ -21,20 +21,14 @@ public:
 	/** StaticMesh component that will be the visuals for our flying pawn */
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* BirdMesh;
-	// Camera components
+	/** Camera components */
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
-	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-		float BaseTurnRate;
-	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-		float BaseLookUpRate;
-
 protected:
+
 	/** Bound to the thrust axis */
 	void ThrustInput(float Val);
 
@@ -48,6 +42,8 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 	// End AActor overrides
+
+	void CameraTick();
 
 private:
 
@@ -65,7 +61,7 @@ private:
 
 	/** Min forward speed */
 	UPROPERTY(Category = Yaw, EditAnywhere)
-		float LandSpeed;
+		float MinSpeed;
 
 	/** Current forward speed */
 	float CurrentForwardSpeed;
@@ -78,6 +74,11 @@ private:
 
 	/** Current roll speed */
 	float CurrentRollSpeed;
+
+	/** Camera FObjects */
+	FVector CameraLoc;
+	FRotator CameraRot;
+	FVector CameraSca;
 
 protected:
 	// Called to bind functionality to input
