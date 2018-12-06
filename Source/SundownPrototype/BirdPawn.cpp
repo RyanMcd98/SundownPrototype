@@ -89,6 +89,8 @@ void ABirdPawn::Tick(float DeltaSeconds)
 		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 10.0f));
 	}
 
+
+
 	// Rotate bird
 	AddActorLocalRotation(DeltaRotation);
 	// Update camera
@@ -178,7 +180,6 @@ void ABirdPawn::MoveRightInput(float Val)
 {
 	CameraLoc = FVector(CameraLoc.X, FMath::Clamp(CameraLoc.Y + Val * 7.5f, -500.0f, 500.0f), CameraLoc.Z);
 
-	FRotator CurrentRotation = GetActorRotation();
 	float TargetYawSpeed;
 
 	// Target yaw speed is based on input
@@ -192,7 +193,7 @@ void ABirdPawn::MoveRightInput(float Val)
 
 	// If turning, yaw value is used to influence roll
 	// If not turning, roll to reverse current roll value.
-	float TargetRollSpeed = bIsTurning ? (CurrentYawSpeed * 0.8f) : (GetActorRotation().Roll * -2.f);
+	float TargetRollSpeed = bIsTurning ? (CurrentYawSpeed * 1.0f) : (GetActorRotation().Roll * -2.f);
 
 	// Smoothly interpolate roll speed
 	CurrentRollSpeed = FMath::FInterpTo(CurrentRollSpeed, TargetRollSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
