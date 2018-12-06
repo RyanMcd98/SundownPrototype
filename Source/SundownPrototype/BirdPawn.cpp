@@ -75,38 +75,36 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	FRotator MaxRotation;							// New rotation for updating rotation
 
 	// Check if bird is flying too close too steeply or at obtuse angle downwards
-	if (CurrentRotation.Pitch < 80.0f && CurrentRotation.Pitch > -80.0f) {
+	if (CurrentRotation.Pitch < 80.0f && CurrentRotation.Pitch > -85.0f) {
 		DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds;
 	}
-	if (CurrentRotation.Pitch > 35.0f) {
+	if (CurrentRotation.Pitch > 0.0f) {
 		MaxRotation = CurrentRotation;
-		MaxRotation.Pitch = 35.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f)); // Interpolate to 
+		MaxRotation.Pitch = 0.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 0.666f)); // Interpolate to 
 	}
-	if (CurrentRotation.Pitch < -35.0f) {
+	if (CurrentRotation.Pitch < 0.0f) {
 		MaxRotation = CurrentRotation;
-		MaxRotation.Pitch = -35.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f));
+		MaxRotation.Pitch = 0.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 0.666f));
 	}
 
 	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
 
 	// Check if bird is banking too steeply
-	if (CurrentRotation.Roll < 80.0f && CurrentRotation.Roll > -80.0f) {
+	if (CurrentRotation.Roll < 60.0f && CurrentRotation.Roll > -60.0f) {
 		DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds;
 	}
 	if (CurrentRotation.Roll > 30.0f) {
 		MaxRotation = CurrentRotation;
-		MaxRotation.Roll = 27.5f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 10.0f));
+		MaxRotation.Roll = 30.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f));
 	}
 	if (CurrentRotation.Roll < -30.0f) {
 		MaxRotation = CurrentRotation;
-		MaxRotation.Roll = -27.5f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 10.0f));
+		MaxRotation.Roll = -30.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f));
 	}
-
-
 
 	// Rotate bird
 	AddActorLocalRotation(DeltaRotation);
