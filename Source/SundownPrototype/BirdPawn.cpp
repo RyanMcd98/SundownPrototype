@@ -23,11 +23,10 @@ ABirdPawn::ABirdPawn()
 	static FConstructorStatics ConstructorStatics;
 
 	// Create root component
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));;
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 
-<<<<<<< HEAD
 	// Create a collision enabled boom camera
-=======
+
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
@@ -44,7 +43,6 @@ ABirdPawn::ABirdPawn()
 	}
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
->>>>>>> 31759df4fc708b6861255a61250f38b9a5b27d09
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
 	mCameraSpringArm->SetupAttachment(RootComponent);
 	mCameraSpringArm->TargetArmLength = 2400.0f; // The camera follows at this distance behind the character	
@@ -82,13 +80,13 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	}
 	if (CurrentRotation.Pitch > 35.0f) {
 		MaxRotation = CurrentRotation;
-		MaxRotation.Pitch = 32.5f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 10.0f)); // Interpolate to 
+		MaxRotation.Pitch = 35.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f)); // Interpolate to 
 	}
 	if (CurrentRotation.Pitch < -35.0f) {
 		MaxRotation = CurrentRotation;
-		MaxRotation.Pitch = -32.5f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 10.0f));
+		MaxRotation.Pitch = -35.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f));
 	}
 
 	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw

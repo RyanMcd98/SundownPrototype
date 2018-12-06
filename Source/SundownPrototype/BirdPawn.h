@@ -28,8 +28,6 @@ public:
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
-<<<<<<< HEAD
-=======
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseTurnRate;
@@ -39,7 +37,6 @@ public:
 
 	UParticleSystemComponent* OurParticleSystem;
 
->>>>>>> 31759df4fc708b6861255a61250f38b9a5b27d09
 protected:
 
 	/** Bound to the thrust axis */
