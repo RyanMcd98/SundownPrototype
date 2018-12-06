@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Developed by Gary Whittle and Scott Douglas, based on Unreal's Flight Example Project
 
 #pragma once
 
@@ -11,7 +11,7 @@
 #include "BirdPawn.generated.h"
 
 UCLASS()
-class SUNDOWNPROTOTYPE_API ABirdPawn : public APawn
+class SUNDOWNPROTOTYPE_API ABirdPawn : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -22,12 +22,14 @@ public:
 	/** StaticMesh component that will be the visuals for our flying pawn */
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* BirdMesh;
-	// Camera components
+	/** Camera components */
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
+<<<<<<< HEAD
+=======
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseTurnRate;
@@ -37,18 +39,8 @@ public:
 
 	UParticleSystemComponent* OurParticleSystem;
 
+>>>>>>> 31759df4fc708b6861255a61250f38b9a5b27d09
 protected:
-	/**
-	* Called via input to turn at a given rate.
-	* @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	*/
-	void TurnAtRate(float Rate);
-
-	/**
-	* Called via input to turn look up/down at a given rate.
-	* @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
-	*/
-	void LookUpAtRate(float Rate);
 
 	/** Bound to the thrust axis */
 	void ThrustInput(float Val);
@@ -63,6 +55,8 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 	// End AActor overrides
+
+	void CameraTick();
 
 private:
 
@@ -93,6 +87,11 @@ private:
 
 	/** Current roll speed */
 	float CurrentRollSpeed;
+
+	/** Camera FObjects */
+	FVector CameraLoc;
+	FRotator CameraRot;
+	FVector CameraSca;
 
 protected:
 	// Called to bind functionality to input
