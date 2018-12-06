@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
 
 UCLASS()
@@ -27,6 +28,18 @@ public:
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
+<<<<<<< HEAD
+=======
+	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseTurnRate;
+	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseLookUpRate;
+
+	UParticleSystemComponent* OurParticleSystem;
+
+>>>>>>> 31759df4fc708b6861255a61250f38b9a5b27d09
 protected:
 
 	/** Bound to the thrust axis */

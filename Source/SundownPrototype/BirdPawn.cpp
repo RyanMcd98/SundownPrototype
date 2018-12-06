@@ -25,7 +25,26 @@ ABirdPawn::ABirdPawn()
 	// Create root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));;
 
+<<<<<<< HEAD
 	// Create a collision enabled boom camera
+=======
+	// set our turn rates for input
+	BaseTurnRate = 45.f;
+	BaseLookUpRate = 45.f;
+
+	 // Create a particle system
+	OurParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
+	OurParticleSystem->SetupAttachment(RootComponent);
+	OurParticleSystem->bAutoActivate = true;
+	OurParticleSystem->SetRelativeLocation(FVector(-250.0f, 0.0f, 20.0f));
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
+	if (ParticleAsset.Succeeded())
+	{
+		OurParticleSystem->SetTemplate(ParticleAsset.Object);
+	}
+
+	// Create a camera boom (pulls in towards the player if there is a collision)
+>>>>>>> 31759df4fc708b6861255a61250f38b9a5b27d09
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
 	mCameraSpringArm->SetupAttachment(RootComponent);
 	mCameraSpringArm->TargetArmLength = 2400.0f; // The camera follows at this distance behind the character	
