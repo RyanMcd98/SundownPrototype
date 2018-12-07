@@ -25,21 +25,26 @@ ABirdPawn::ABirdPawn()
 	// Create root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 
-	// Create a collision enabled boom camera
-
-	// set our turn rates for input
-	BaseTurnRate = 45.f;
-	BaseLookUpRate = 45.f;
-
 	 // Create a particle system
-	OurParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
-	OurParticleSystem->SetupAttachment(RootComponent);
-	OurParticleSystem->bAutoActivate = true;
-	OurParticleSystem->SetRelativeLocation(FVector(-250.0f, 0.0f, 20.0f));
-	static ConstructorHelpers::FObjectFinder<UParticleSystem> ParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
-	if (ParticleAsset.Succeeded())
+	FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
+	FireParticleSystem->SetupAttachment(RootComponent);
+	FireParticleSystem->bAutoActivate = true;
+	FireParticleSystem->SetRelativeLocation(FVector(-250.0f, 0.0f, 20.0f));
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
+	if (FireParticleAsset.Succeeded())
 	{
-		OurParticleSystem->SetTemplate(ParticleAsset.Object);
+		FireParticleSystem->SetTemplate(FireParticleAsset.Object);
+	}
+
+	// Create a particle system
+	FairyParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fairy Particles"));
+	FairyParticleSystem->SetupAttachment(RootComponent);
+	FairyParticleSystem->bAutoActivate = true;
+	FairyParticleSystem->SetRelativeLocation(FVector(-250.0f, 250.0f, 0.0f));
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> FairyParticleAsset(TEXT("/Game/Fairy/FairyParticle.FairyParticle"));
+	if (FairyParticleAsset.Succeeded())
+	{
+		FairyParticleSystem->SetTemplate(FairyParticleAsset.Object);
 	}
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -54,11 +59,11 @@ ABirdPawn::ABirdPawn()
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Set handling parameters
-	Acceleration = 500.0f;
-	TurnSpeed = 50.f;
+	Acceleration = 250.0f;
+	TurnSpeed = 25.f;
 	MaxSpeed = 3000.f;
-	MinSpeed = 500.0f;
-	CurrentForwardSpeed = 500.f;
+	MinSpeed = 1000.0f;
+	CurrentForwardSpeed = 1500.f;
 }
 
 void ABirdPawn::Tick(float DeltaSeconds)
@@ -129,14 +134,14 @@ void ABirdPawn::CameraTick()
 	// CenterY will become the new camera Y location (in the direction of Y = 0)
 	float CenterY;
 
-	if (CameraLoc.Y > 0.5) { 
+	if (CameraLoc.Y > 5.0) { 
 		CenterY = CameraLoc.Y - 5.0f; // 5 closer to Y = 0
 	}
-	else if (CameraLoc.Y < 0.5) {
+	else if (CameraLoc.Y < -5.0) {
 		CenterY = CameraLoc.Y + 5.0f; // -5 closer to Y = 0
 	}
 
-	CameraLoc = FVector(CameraLoc.X, CenterY, 600.0f);	// Camera location
+	CameraLoc = FVector(-500.0f, CenterY, 600.0f);		// Camera location
 	CameraRot = FRotator(0.0f, 0.0f, 0.0f);				// Camera rotation
 	CameraSca = FVector(1.0f, 1.0f, 1.0f);				// Camera scale
 
