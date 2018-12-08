@@ -59,11 +59,11 @@ ABirdPawn::ABirdPawn()
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Set handling parameters
-	Acceleration = 250.0f;
-	TurnSpeed = 25.f;
-	MaxSpeed = 3000.f;
+	Acceleration = 300.0f;
+	TurnSpeed = 15.f;
+	MaxSpeed = 2000.0f;
 	MinSpeed = 1000.0f;
-	CurrentForwardSpeed = 1500.f;
+	CurrentForwardSpeed = 1000.0f;
 }
 
 void ABirdPawn::Tick(float DeltaSeconds)
@@ -74,24 +74,16 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	AddActorLocalOffset(LocalMove, true);
 
 	// Calculate change in rotation
-	FRotator DeltaRotation(0, 0, 0);
+	FRotator DeltaRotation(0, 0, 0);				// New rotation for updating rotation		
+	FRotator InterpRotation;						// New rotation for interpolating to
+	CurrentRotation = GetActorRotation();
 
-	FRotator CurrentRotation = GetActorRotation();	// Current rotation of bird
-	FRotator MaxRotation;							// New rotation for updating rotation
-
+	DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds; // Update pitch
 	// Check if bird is flying too close too steeply or at obtuse angle downwards
-	if (CurrentRotation.Pitch < 80.0f && CurrentRotation.Pitch > -85.0f) {
-		DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds;
-	}
-	if (CurrentRotation.Pitch > 0.0f) {
-		MaxRotation = CurrentRotation;
-		MaxRotation.Pitch = 0.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 0.666f)); // Interpolate to 
-	}
-	if (CurrentRotation.Pitch < 0.0f) {
-		MaxRotation = CurrentRotation;
-		MaxRotation.Pitch = 0.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 0.666f));
+	if (CurrentRotation.Pitch != 0.0f) {
+		InterpRotation = CurrentRotation;
+		InterpRotation.Pitch = 0.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 0.666f)); // Interpolate to 
 	}
 
 	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
@@ -100,15 +92,15 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	if (CurrentRotation.Roll < 60.0f && CurrentRotation.Roll > -60.0f) {
 		DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds;
 	}
-	if (CurrentRotation.Roll > 30.0f) {
-		MaxRotation = CurrentRotation;
-		MaxRotation.Roll = 30.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f));
+	if (CurrentRotation.Roll > 20.0f) {
+		InterpRotation = CurrentRotation;
+		InterpRotation.Roll = 20.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 1.333f));
 	}
-	if (CurrentRotation.Roll < -30.0f) {
-		MaxRotation = CurrentRotation;
-		MaxRotation.Roll = -30.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, MaxRotation, GetWorld()->GetDeltaSeconds(), 2.0f));
+	if (CurrentRotation.Roll < -20.0f) {
+		InterpRotation = CurrentRotation;
+		InterpRotation.Roll = -20.0f;
+		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 1.333f));
 	}
 
 	// Rotate bird
@@ -131,18 +123,19 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 void ABirdPawn::CameraTick()
 {
 	// Update location first
-	// CenterY will become the new camera Y location (in the direction of Y = 0)
-	float CenterY;
-
-	if (CameraLoc.Y > 5.0) { 
-		CenterY = CameraLoc.Y - 5.0f; // 5 closer to Y = 0
-	}
-	else if (CameraLoc.Y < -5.0) {
-		CenterY = CameraLoc.Y + 5.0f; // -5 closer to Y = 0
+	// CamMoveX will become the new camera X location (this is how zoomed into the character you are, pitch used for weighting)
+	if (CurrentRotation.Pitch < 0.0f) {
+		CamMoveX = FMath::FInterpTo(CameraLoc.X, CurrentRotation.Pitch*-10, GetWorld()->GetDeltaSeconds(), 1.0f);
 	}
 
-	CameraLoc = FVector(-500.0f, CenterY, 600.0f);		// Camera location
+	// CamMoveY will become the new camera Y location (in the direction of Y = 0)
+	if (CameraLoc.Y != 0.0f) {
+		CamMoveY = CameraLoc.Y;
+		CamMoveY = FMath::FInterpTo(CamMoveY, 0.0f, GetWorld()->GetDeltaSeconds(), 0.666f); // Interpolate for smooth camera movement
+	}
+
 	CameraRot = FRotator(0.0f, 0.0f, 0.0f);				// Camera rotation
+	CameraLoc = FVector(CamMoveX, CamMoveY, 200.0f);	// Camera location
 	CameraSca = FVector(1.0f, 1.0f, 1.0f);				// Camera scale
 
 	// Setup transform to desired rotation, location, scale 
@@ -186,11 +179,13 @@ void ABirdPawn::ThrustInput(float Val)
 
 void ABirdPawn::MoveUpInput(float Val)
 {
+	CameraLoc = FVector(FMath::Clamp(CameraLoc.X + Val * 2.0f, 0.0f, 500.0f), CameraLoc.Y, CameraLoc.Z);
+
 	// Target pitch speed is based in input
-	float TargetPitchSpeed = (Val * TurnSpeed * 0.5f);
+	float TargetPitchSpeed = (Val * TurnSpeed * 1.5f);
 
 	// When steering, we decrease pitch slightly
-	TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * 0.5);
+	//TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * -0.01f);
 
 	// Smoothly interpolate to target pitch speed
 	CurrentPitchSpeed = FMath::FInterpTo(CurrentPitchSpeed, TargetPitchSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
@@ -198,12 +193,12 @@ void ABirdPawn::MoveUpInput(float Val)
 
 void ABirdPawn::MoveRightInput(float Val)
 {
-	CameraLoc = FVector(CameraLoc.X, FMath::Clamp(CameraLoc.Y + Val * 7.5f, -500.0f, 500.0f), CameraLoc.Z);
+	CameraLoc = FVector(CameraLoc.X, FMath::Clamp(CameraLoc.Y + Val * 3.5f, -300.0f, 300.0f), CameraLoc.Z);
 
 	float TargetYawSpeed;
 
 	// Target yaw speed is based on input
-	TargetYawSpeed = (Val * TurnSpeed);
+	TargetYawSpeed = (Val * TurnSpeed * 2);
 
 	// Smoothly interpolate to target yaw speed
 	CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, GetWorld()->GetDeltaSeconds(), 2.f);

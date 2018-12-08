@@ -68,6 +68,10 @@ private:
 	UPROPERTY(Category = Yaw, EditAnywhere)
 		float MinSpeed;
 
+	/** Fairy light intensity rate (energy) */
+	UPROPERTY(Category = Fairy, EditAnywhere)
+		float FairyEnergy;
+
 	/** Current forward speed */
 	float CurrentForwardSpeed;
 
@@ -79,6 +83,13 @@ private:
 
 	/** Current roll speed */
 	float CurrentRollSpeed;
+
+	/** Camera Movement Floats */
+	float CamMoveX = 0.0f;
+	float CamMoveY = 0.0f;
+
+	/** Current rotation */
+	FRotator CurrentRotation;
 
 	/** Camera FObjects */
 	FVector CameraLoc;
