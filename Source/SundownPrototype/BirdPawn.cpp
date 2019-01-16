@@ -36,17 +36,6 @@ ABirdPawn::ABirdPawn()
 		FireParticleSystem->SetTemplate(FireParticleAsset.Object);
 	}
 
-	// Create a particle system
-	FairyParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fairy Particles"));
-	FairyParticleSystem->SetupAttachment(RootComponent);
-	FairyParticleSystem->bAutoActivate = true;
-	FairyParticleSystem->SetRelativeLocation(FVector(-250.0f, 250.0f, 0.0f));
-	static ConstructorHelpers::FObjectFinder<UParticleSystem> FairyParticleAsset(TEXT("/Game/Fairy/FairyParticle.FairyParticle"));
-	if (FairyParticleAsset.Succeeded())
-	{
-		FairyParticleSystem->SetTemplate(FairyParticleAsset.Object);
-	}
-
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
 	mCameraSpringArm->SetupAttachment(RootComponent);

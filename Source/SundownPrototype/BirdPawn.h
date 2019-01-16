@@ -29,8 +29,6 @@ public:
 		UCameraComponent* mCamera;
 	UPROPERTY(EditAnywhere)
 		UParticleSystemComponent* FireParticleSystem;
-	UPROPERTY(EditAnywhere)
-		UParticleSystemComponent* FairyParticleSystem;
 
 protected:
 
