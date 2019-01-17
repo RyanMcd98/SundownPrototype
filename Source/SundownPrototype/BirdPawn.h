@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
+#include "Classes/Components/SplineComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
@@ -22,6 +24,9 @@ public:
 	/** StaticMesh component that will be the visuals for our flying pawn */
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* BirdMesh;
+	/** Spline component for bird to follow can be set by designers **/
+	UPROPERTY(Category = Spline, EditAnywhere)
+		USplineComponent* SplinePath;
 	/** Camera components */
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
