@@ -53,6 +53,7 @@ ABirdPawn::ABirdPawn()
 	MaxSpeed = 2000.0f;
 	MinSpeed = 1000.0f;
 	CurrentForwardSpeed = 1000.0f;
+	SplineDistance = 0.0f;
 }
 
 void ABirdPawn::BeginPlay()
@@ -60,24 +61,31 @@ void ABirdPawn::BeginPlay()
 	SplinePtr = SplineActor->GetComponentByClass(USplineComponent::StaticClass());
 	Spline = Cast<USplineComponent>(SplinePtr);
 	
-	if (Spline)
+	/*if (Spline)
 	{
 		SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(10000.0f, ESplineCoordinateSpace::World));
-	}
+	}*/
 
 	Super::BeginPlay();
 }
 
 void ABirdPawn::Tick(float DeltaSeconds)
 {
-	const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
-	
-	////Spline = Cast<USplineComponent>(SplinePtr);
+	// SPLINE MOVEMENT --------------------------------------------------
+	SplineDistance = SplineDistance + SplineSpeed; // Increment distance along spline
 
-	//if (Spline)
-	//{
-	//	SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(10.0f, ESplineCoordinateSpace::World));
-	//}
+	if (Spline) // Check to make sure reference is valid
+	{
+		if (SplineDistance < Spline->GetDistanceAlongSplineAtSplinePoint(Spline->GetNumberOfSplinePoints() - 1))
+		{
+			SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Set location to location at distance along spline
+			SetActorRotation(Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Aaaand rotation to rotation at distance along spline
+		}
+	}
+
+	// SIDEWAYS MOVEMENT (WHILST ON SPLINE)
+
+	//const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
 
 	// Move bird forwards
 	//AddActorLocalOffset(LocalMove, true);
@@ -88,29 +96,8 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	CurrentRotation = GetActorRotation();
 
 	DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds; // Update pitch
-	// Check if bird is flying too close too steeply or at obtuse angle downwards
-	if (CurrentRotation.Pitch != 0.0f) {
-		InterpRotation = CurrentRotation;
-		InterpRotation.Pitch = 0.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 0.666f)); // Interpolate to 
-	}
-
-	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
-
-	// Check if bird is banking too steeply
-	if (CurrentRotation.Roll < 60.0f && CurrentRotation.Roll > -60.0f) {
-		DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds;
-	}
-	if (CurrentRotation.Roll > 20.0f) {
-		InterpRotation = CurrentRotation;
-		InterpRotation.Roll = 20.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 1.333f));
-	}
-	if (CurrentRotation.Roll < -20.0f) {
-		InterpRotation = CurrentRotation;
-		InterpRotation.Roll = -20.0f;
-		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 1.333f));
-	}
+	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds;		// Update yaw
+	DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds;	// Update roll
 
 	// Rotate bird
 	AddActorLocalRotation(DeltaRotation);

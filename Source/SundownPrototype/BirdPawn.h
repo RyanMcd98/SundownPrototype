@@ -74,9 +74,10 @@ private:
 	UPROPERTY(Category = Yaw, EditAnywhere)
 		float MinSpeed;
 
-	/** Fairy light intensity rate (energy) */
-	UPROPERTY(Category = Fairy, EditAnywhere)
-		float FairyEnergy;
+	/** Spline speed intensity */
+	UPROPERTY(Category = Spline, EditAnywhere)
+		float SplineSpeed;
+		float SplineDistance;
 
 	/** Current forward speed */
 	float CurrentForwardSpeed;
