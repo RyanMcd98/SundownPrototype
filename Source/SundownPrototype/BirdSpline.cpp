@@ -27,7 +27,7 @@ ABirdSpline::ABirdSpline()
 	MovementSpline = CreateDefaultSubobject<USplineComponent>(TEXT("MovementSpline"));
 	MovementSpline->SetupAttachment(RootComponent);
 
-	MovementSpline->bSplineHasBeenEdited = true;
+	//MovementSpline->bSplineHasBeenEdited = true;
 
 }
 

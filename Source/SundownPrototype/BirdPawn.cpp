@@ -55,12 +55,32 @@ ABirdPawn::ABirdPawn()
 	CurrentForwardSpeed = 1000.0f;
 }
 
+void ABirdPawn::BeginPlay()
+{
+	SplinePtr = SplineActor->GetComponentByClass(USplineComponent::StaticClass());
+	Spline = Cast<USplineComponent>(SplinePtr);
+	
+	if (Spline)
+	{
+		SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(10000.0f, ESplineCoordinateSpace::World));
+	}
+
+	Super::BeginPlay();
+}
+
 void ABirdPawn::Tick(float DeltaSeconds)
 {
 	const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
 	
+	////Spline = Cast<USplineComponent>(SplinePtr);
+
+	//if (Spline)
+	//{
+	//	SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(10.0f, ESplineCoordinateSpace::World));
+	//}
+
 	// Move bird forwards
-	AddActorLocalOffset(LocalMove, true);
+	//AddActorLocalOffset(LocalMove, true);
 
 	// Calculate change in rotation
 	FRotator DeltaRotation(0, 0, 0);				// New rotation for updating rotation		

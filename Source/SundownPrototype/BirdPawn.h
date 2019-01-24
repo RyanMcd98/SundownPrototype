@@ -26,7 +26,9 @@ public:
 		class USkeletalMeshComponent* BirdMesh;
 	/** Spline component for bird to follow can be set by designers **/
 	UPROPERTY(Category = Spline, EditAnywhere)
-		USplineComponent* SplinePath;
+		AActor* SplineActor;
+		UActorComponent* SplinePtr;
+		USplineComponent* Spline;
 	/** Camera components */
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
@@ -47,6 +49,7 @@ protected:
 	void MoveRightInput(float Val);
 
 	// Begin AActor overrides
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 	// End AActor overrides
