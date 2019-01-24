@@ -21,17 +21,16 @@ public:
 	// Sets default values for this character's properties
 	ABirdPawn();
 
-	/** StaticMesh component that will be the visuals for our flying pawn */
-	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		class USkeletalMeshComponent* BirdMesh;
 	/** Spline component for bird to follow can be set by designers **/
 	UPROPERTY(Category = Spline, EditAnywhere)
 		USplineComponent* SplinePath;
+
 	/** Camera components */
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
+
 	UPROPERTY(EditAnywhere)
 		UParticleSystemComponent* FireParticleSystem;
 
@@ -71,10 +70,6 @@ private:
 	UPROPERTY(Category = Yaw, EditAnywhere)
 		float MinSpeed;
 
-	/** Fairy light intensity rate (energy) */
-	UPROPERTY(Category = Fairy, EditAnywhere)
-		float FairyEnergy;
-
 	/** Current forward speed */
 	float CurrentForwardSpeed;
 
@@ -104,8 +99,6 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	/** Returns BirdMesh subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetBirdMesh() const { return BirdMesh; }
 	/** Returns CameraSpringArm subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraArm() const { return mCameraSpringArm; }
 	/** Returns Camera subobject **/

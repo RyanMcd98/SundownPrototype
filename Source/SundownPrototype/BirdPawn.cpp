@@ -11,17 +11,6 @@
 // Sets default values
 ABirdPawn::ABirdPawn()
 {
-	// Structure to hold one-time initialization
-	struct FConstructorStatics
-	{
-		ConstructorHelpers::FObjectFinderOptional<USkeletalMesh> BirdMesh;
-		FConstructorStatics()
-			: BirdMesh(TEXT("/Game/TheBird/TSTANIMBAKE.TSTANIMBAKE"))
-		{
-		}
-	};
-	static FConstructorStatics ConstructorStatics;
-
 	// Create root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 
@@ -78,15 +67,18 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
 
 	// Check if bird is banking too steeply
-	if (CurrentRotation.Roll < 60.0f && CurrentRotation.Roll > -60.0f) {
+	if (CurrentRotation.Roll < 60.0f && CurrentRotation.Roll > -60.0f) 
+	{
 		DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds;
 	}
-	if (CurrentRotation.Roll > 20.0f) {
+	if (CurrentRotation.Roll > 20.0f) 
+	{
 		InterpRotation = CurrentRotation;
 		InterpRotation.Roll = 20.0f;
 		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 1.333f));
 	}
-	if (CurrentRotation.Roll < -20.0f) {
+	if (CurrentRotation.Roll < -20.0f) 
+	{
 		InterpRotation = CurrentRotation;
 		InterpRotation.Roll = -20.0f;
 		SetActorRotation(FMath::RInterpTo(CurrentRotation, InterpRotation, GetWorld()->GetDeltaSeconds(), 1.333f));
@@ -113,12 +105,14 @@ void ABirdPawn::CameraTick()
 {
 	// Update location first
 	// CamMoveX will become the new camera X location (this is how zoomed into the character you are, pitch used for weighting)
-	if (CurrentRotation.Pitch < 0.0f) {
+	if (CurrentRotation.Pitch < 0.0f) 
+	{
 		CamMoveX = FMath::FInterpTo(CameraLoc.X, CurrentRotation.Pitch*-10, GetWorld()->GetDeltaSeconds(), 1.0f);
 	}
 
 	// CamMoveY will become the new camera Y location (in the direction of Y = 0)
-	if (CameraLoc.Y != 0.0f) {
+	if (CameraLoc.Y != 0.0f) 
+	{
 		CamMoveY = CameraLoc.Y;
 		CamMoveY = FMath::FInterpTo(CamMoveY, 0.0f, GetWorld()->GetDeltaSeconds(), 0.666f); // Interpolate for smooth camera movement
 	}
