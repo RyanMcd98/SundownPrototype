@@ -25,11 +25,13 @@ ABirdPawn::ABirdPawn()
 	// Create root component
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 
+	mBoundSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Movement Sphere"));
+	mBoundSphere->SetupAttachment(RootComponent);
+
 	 // Create a particle system
 	FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
 	FireParticleSystem->SetupAttachment(RootComponent);
 	FireParticleSystem->bAutoActivate = true;
-	FireParticleSystem->SetRelativeLocation(FVector(-250.0f, 0.0f, 20.0f));
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
 	if (FireParticleAsset.Succeeded())
 	{
@@ -78,8 +80,10 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	{
 		if (SplineDistance < Spline->GetDistanceAlongSplineAtSplinePoint(Spline->GetNumberOfSplinePoints() - 1))
 		{
-			SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Set location to location at distance along spline
-			SetActorRotation(Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Aaaand rotation to rotation at distance along spline
+			mBoundSphere->SetWorldLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
+			SetActorLocation(mBoundSphere->GetComponentLocation());
+			//SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Set location to location at distance along spline
+			//SetActorRotation(Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Aaaand rotation to rotation at distance along spline
 		}
 	}
 

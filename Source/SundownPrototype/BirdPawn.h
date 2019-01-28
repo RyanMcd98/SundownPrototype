@@ -8,6 +8,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "Classes/Components/SplineComponent.h"
+#include "Classes/Components/SphereComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
@@ -30,6 +31,8 @@ public:
 		UActorComponent* SplinePtr;
 		USplineComponent* Spline;
 	/** Camera components */
+	UPROPERTY(EditAnywhere)
+		USphereComponent* mBoundSphere;
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
