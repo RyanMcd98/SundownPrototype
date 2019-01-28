@@ -5,11 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
-#include "Classes/Components/SplineComponent.h"
-#include "Engine/SkeletalMesh.h"
-#include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
+#include "Components/SplineComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
 
 UCLASS()
@@ -21,17 +20,17 @@ public:
 	// Sets default values for this character's properties
 	ABirdPawn();
 
-	/** StaticMesh component that will be the visuals for our flying pawn */
-	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		class USkeletalMeshComponent* BirdMesh;
 	/** Spline component for bird to follow can be set by designers **/
 	UPROPERTY(Category = Spline, EditAnywhere)
 		USplineComponent* SplinePath;
-	/** Camera components */
+
+	// Camera components
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
+
+	//Bird particle system
 	UPROPERTY(EditAnywhere)
 		UParticleSystemComponent* FireParticleSystem;
 
@@ -71,10 +70,6 @@ private:
 	UPROPERTY(Category = Yaw, EditAnywhere)
 		float MinSpeed;
 
-	/** Fairy light intensity rate (energy) */
-	UPROPERTY(Category = Fairy, EditAnywhere)
-		float FairyEnergy;
-
 	/** Current forward speed */
 	float CurrentForwardSpeed;
 
@@ -104,8 +99,6 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	/** Returns BirdMesh subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetBirdMesh() const { return BirdMesh; }
 	/** Returns CameraSpringArm subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraArm() const { return mCameraSpringArm; }
 	/** Returns Camera subobject **/
