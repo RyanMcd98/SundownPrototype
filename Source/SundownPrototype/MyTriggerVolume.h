@@ -4,11 +4,10 @@
 #include "Engine/TriggerVolume.h"
 #include "BirdPawn.h"
 #include "GameFramework/Actor.h"
+#include "Runtime/LevelSequence/Public/LevelSequence.h"
+#include "Runtime/LevelSequence/Public/LevelSequencePlayer.h"
 #include "MyTriggerVolume.generated.h"
 
-/**
- *
- */
 UCLASS(Blueprintable)
 class SUNDOWNPROTOTYPE_API AMyTriggerVolume : public ATriggerVolume
 {
@@ -31,8 +30,7 @@ public:
 	UFUNCTION()
 		void OnOverlapEnd(class AActor* OverlappedActor, class AActor* OtherActor);
 
-	/*Blueprint Reference of bird pawn class*/
-	UPROPERTY(EditDefaultsOnly, Category = "ActorSpawning")
-		TSubclassOf<ABirdPawn> SpawnBirdPawnBP;
-
+	//Level sequence asset played when pawn enters trigger box
+	UPROPERTY(EditAnywhere)
+	class ULevelSequence* FadeOut;
 };

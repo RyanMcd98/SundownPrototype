@@ -5,11 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
-#include "Classes/Components/SplineComponent.h"
-#include "Engine/SkeletalMesh.h"
-#include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
+#include "Components/SplineComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
 
 UCLASS()
@@ -25,12 +24,13 @@ public:
 	UPROPERTY(Category = Spline, EditAnywhere)
 		USplineComponent* SplinePath;
 
-	/** Camera components */
+	// Camera components
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
+	//Bird particle system
 	UPROPERTY(EditAnywhere)
 		UParticleSystemComponent* FireParticleSystem;
 

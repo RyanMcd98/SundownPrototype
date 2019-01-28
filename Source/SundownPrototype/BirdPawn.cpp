@@ -6,7 +6,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "Engine/World.h"
-#include "Engine/SkeletalMesh.h"
 
 // Sets default values
 ABirdPawn::ABirdPawn()
@@ -18,7 +17,7 @@ ABirdPawn::ABirdPawn()
 	FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
 	FireParticleSystem->SetupAttachment(RootComponent);
 	FireParticleSystem->bAutoActivate = true;
-	FireParticleSystem->SetRelativeLocation(FVector(-250.0f, 0.0f, 20.0f));
+	FireParticleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 00.0f));
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
 	if (FireParticleAsset.Succeeded())
 	{
@@ -117,9 +116,9 @@ void ABirdPawn::CameraTick()
 		CamMoveY = FMath::FInterpTo(CamMoveY, 0.0f, GetWorld()->GetDeltaSeconds(), 0.666f); // Interpolate for smooth camera movement
 	}
 
-	CameraRot = FRotator(0.0f, 0.0f, 0.0f);				// Camera rotation
+	CameraRot = FRotator(0.0f, 0.0f, 0.0f);			    // Camera rotation
 	CameraLoc = FVector(CamMoveX, CamMoveY, 200.0f);	// Camera location
-	CameraSca = FVector(1.0f, 1.0f, 1.0f);				// Camera scale
+	CameraSca = FVector(1.0f, 1.0f, 1.0f);		        // Camera scale
 
 	// Setup transform to desired rotation, location, scale 
 	FTransform CameraTransform(CameraRot, CameraLoc, CameraSca); 

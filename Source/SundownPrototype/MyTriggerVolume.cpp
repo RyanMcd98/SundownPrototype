@@ -24,26 +24,25 @@ void AMyTriggerVolume::BeginPlay()
 
 void AMyTriggerVolume::OnOverlapBegin(class AActor* OverlappedActor, class AActor* OtherActor)
 {
-	if (OtherActor && (OtherActor != this))
+	if (OtherActor && (OtherActor->IsA(APawn::StaticClass())))
 	{
 		// print to screen using above defined method when actor enters trigger volume
 		print("Overlap Begin");
 		printFString("Other Actor = %s", *OtherActor->GetName());
 
-		FVector Location(this->GetActorLocation().X, this->GetActorLocation().Y + 3000, this->GetActorLocation().Z);
-		FRotator Rotation(0.0f, 0.0f, 0.0f);
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		GetWorld()->SpawnActor<AMyTriggerVolume>(Location, Rotation, SpawnInfo);
-
-		//Actual Spawn. The following function returns a reference to the spawned actor
-		ABirdPawn* MyBirdPawnBPRef = GetWorld()->SpawnActor<ABirdPawn>(SpawnBirdPawnBP, GetTransform(), SpawnInfo);
+		//FVector Location(this->GetActorLocation().X, this->GetActorLocation().Y + 3000, this->GetActorLocation().Z);
+		//FRotator Rotation(0.0f, 0.0f, 0.0f);
+		//FActorSpawnParameters SpawnInfo;
+		//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		//GetWorld()->SpawnActor<AMyTriggerVolume>(Location, Rotation, SpawnInfo);
+		
+		//CreateLevelSequencePlayer(GetWorld(), FadeOut, FMovieSceneSequencePlaybackSettings());
 	}
 }
 
 void AMyTriggerVolume::OnOverlapEnd(class AActor* OverlappedActor, class AActor* OtherActor)
 {
-	if (OtherActor && (OtherActor != this))
+	if (OtherActor && (OtherActor->IsA(APawn::StaticClass())))
 	{
 		// print to screen using above defined method when actor leaves trigger volume
 		print("Overlap Ended");
