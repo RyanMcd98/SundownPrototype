@@ -20,9 +20,11 @@ public:
 	// Sets default values for this character's properties
 	ABirdPawn();
 
-	/** Spline component for bird to follow can be set by designers **/
-	UPROPERTY(Category = Spline, EditAnywhere)
-		USplineComponent* SplinePath;
+	// Spline system
+	TArray<AActor*> Splines;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
+		TSubclassOf<class AActor>  SplineClassType;
+	USplineComponent* Spline;
 
 	// Camera components
 	UPROPERTY(EditAnywhere)
@@ -46,13 +48,16 @@ protected:
 	void MoveRightInput(float Val);
 
 	// Begin AActor overrides
+	virtual void BeginPlay();
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 	// End AActor overrides
 
-	void CameraTick();
-
 private:
+
+	/** Spline speed intensity */
+	UPROPERTY(Category = Spline, EditAnywhere)
+		float SplineSpeed;
 
 	/** How quickly forward speed changes */
 	UPROPERTY(Category = Plane, EditAnywhere)
@@ -82,17 +87,8 @@ private:
 	/** Current roll speed */
 	float CurrentRollSpeed;
 
-	/** Camera Movement Floats */
-	float CamMoveX = 0.0f;
-	float CamMoveY = 0.0f;
-
-	/** Current rotation */
-	FRotator CurrentRotation;
-
-	/** Camera FObjects */
-	FVector CameraLoc;
-	FRotator CameraRot;
-	FVector CameraSca;
+	// Spline distance variable for handling spline movement
+	float SplineDistance;
 
 protected:
 	// Called to bind functionality to input

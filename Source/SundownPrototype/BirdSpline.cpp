@@ -17,32 +17,8 @@ Setup a movement bounds system and integrate into the movement spline w/ speed c
 // Sets default values
 ABirdSpline::ABirdSpline()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	//PrimaryActorTick.bCanEverTick = true;
-
-	// Create root component
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
-
 	// Create spline component
 	MovementSpline = CreateDefaultSubobject<USplineComponent>(TEXT("MovementSpline"));
 	MovementSpline->SetupAttachment(RootComponent);
-
-	//MovementSpline->bSplineHasBeenEdited = true;
-
-}
-
-// Called when the game starts or when spawned
-void ABirdSpline::BeginPlay()
-{
-	//Super::BeginPlay();
-
-	
-}
-
-// Called every frame
-void ABirdSpline::Tick(float DeltaTime)
-{
-	//Super::Tick(DeltaTime);
-
 }
 
