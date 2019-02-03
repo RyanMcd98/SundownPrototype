@@ -60,20 +60,24 @@ private:
 		float SplineSpeed;
 
 	/** How quickly forward speed changes */
-	UPROPERTY(Category = Plane, EditAnywhere)
+	UPROPERTY(Category = Movement, EditAnywhere)
 		float Acceleration;
 
 	/** How quickly pawn can steer */
-	UPROPERTY(Category = Plane, EditAnywhere)
+	UPROPERTY(Category = Movement, EditAnywhere)
 		float TurnSpeed;
 
 	/** Max forward speed */
-	UPROPERTY(Category = Pitch, EditAnywhere)
+	UPROPERTY(Category = Movement, EditAnywhere)
 		float MaxSpeed;
 
 	/** Min forward speed */
-	UPROPERTY(Category = Yaw, EditAnywhere)
+	UPROPERTY(Category = Movement, EditAnywhere)
 		float MinSpeed;
+
+	/** Camera lag speed (how quickly camera moves towards target socket */
+	UPROPERTY(Category = Camera, EditAnywhere)
+		float CamLag;
 
 	/** Current forward speed */
 	float CurrentForwardSpeed;

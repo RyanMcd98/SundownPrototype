@@ -30,8 +30,9 @@ ABirdPawn::ABirdPawn()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
 	mCameraSpringArm->SetupAttachment(RootComponent);
-	mCameraSpringArm->TargetArmLength = 2400.0f; // The camera follows at this distance behind the character	
 	mCameraSpringArm->bUsePawnControlRotation = false; // Rotate the arm based on the controller
+	mCameraSpringArm->bEnableCameraLag = false;
+	mCameraSpringArm->CameraLagSpeed = CamLag;
 
 	//// Create a follow camera
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -39,11 +40,11 @@ ABirdPawn::ABirdPawn()
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Set handling parameters
-	Acceleration = 300.0f;
-	TurnSpeed = 15.f;
-	MaxSpeed = 2000.0f;
-	MinSpeed = 1000.0f;
-	CurrentForwardSpeed = 1000.0f;
+	Acceleration = 500.0f;
+	TurnSpeed = 45.0f;
+	MaxSpeed = 6000.0f;
+	MinSpeed = 3000.0f;
+	CurrentForwardSpeed = 3000.0f;
 	SplineDistance = 0.0f;
 }
 
@@ -77,10 +78,10 @@ void ABirdPawn::Tick(float DeltaSeconds)
 		}
 	}
 
-	//const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
+	const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
 	
 	// Move bird forwards
-	//AddActorLocalOffset(LocalMove, true);
+	AddActorLocalOffset(LocalMove, true);
 
 	// Calculate change in rotation
 	FRotator DeltaRotation(0, 0, 0);				// New rotation for updating rotation		
@@ -121,7 +122,7 @@ void ABirdPawn::ThrustInput(float Val)
 	// Is there any input?
 	bool bHasInput = !FMath::IsNearlyEqual(Val, 0.f);
 	// If input is not held down, reduce speed
-	float CurrentAcc = bHasInput ? (Val * Acceleration) : (0.9 * Acceleration);
+	float CurrentAcc = bHasInput ? (Val * Acceleration) : (-0.5f * Acceleration);
 	// Calculate new speed
 	float NewForwardSpeed = CurrentForwardSpeed + (GetWorld()->GetDeltaSeconds() * CurrentAcc);
 	// Clamp between MinSpeed and MaxSpeed
@@ -131,10 +132,10 @@ void ABirdPawn::ThrustInput(float Val)
 void ABirdPawn::MoveUpInput(float Val)
 {
 	// Target pitch speed is based in input
-	float TargetPitchSpeed = (Val * TurnSpeed * 1.5f);
+	float TargetPitchSpeed = (Val * TurnSpeed * -1.f);
 
 	// When steering, we decrease pitch slightly
-	TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * -0.01f);
+	TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * -0.2f);
 
 	// Smoothly interpolate to target pitch speed
 	CurrentPitchSpeed = FMath::FInterpTo(CurrentPitchSpeed, TargetPitchSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
@@ -142,10 +143,8 @@ void ABirdPawn::MoveUpInput(float Val)
 
 void ABirdPawn::MoveRightInput(float Val)
 {
-	float TargetYawSpeed;
-
 	// Target yaw speed is based on input
-	TargetYawSpeed = (Val * TurnSpeed * 2);
+	float TargetYawSpeed = (Val * TurnSpeed);
 
 	// Smoothly interpolate to target yaw speed
 	CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
