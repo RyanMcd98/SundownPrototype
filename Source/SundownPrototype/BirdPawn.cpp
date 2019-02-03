@@ -39,6 +39,10 @@ ABirdPawn::ABirdPawn()
 	mCamera->SetupAttachment(mCameraSpringArm, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Create the collision sphere
+	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
+	CollisionSphere->SetupAttachment(RootComponent);
+
 	// Set handling parameters
 	Acceleration = 500.0f;
 	TurnSpeed = 45.0f;

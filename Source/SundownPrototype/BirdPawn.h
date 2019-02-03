@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/SplineComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
@@ -25,6 +26,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 		TSubclassOf<class AActor>  SplineClassType;
 	USplineComponent* Spline;
+
+	// Soft collision sphere
+	UPROPERTY(EditAnywhere, Category = Collision)
+		USphereComponent* CollisionSphere;
 
 	// Camera components
 	UPROPERTY(EditAnywhere)
