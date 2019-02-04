@@ -96,6 +96,9 @@ private:
 	/** Current roll speed */
 	float CurrentRollSpeed;
 
+	/** Overlapping actors array */
+	TArray<AActor*> OverlappingActors;
+
 	// Spline distance variable for handling spline movement
 	float SplineDistance;
 

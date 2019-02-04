@@ -84,6 +84,16 @@ void ABirdPawn::Tick(float DeltaSeconds)
 
 	const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
 	
+	/*CollisionSphere->GetOverlappingActors(OverlappingActors);
+	float push = 0.0f;
+
+	if (OverlappingActors.Num() != 0) {
+		for (int i = 0; i < OverlappingActors.Num(); i++) {
+			float CollisionDistance = OverlappingActors[i]->GetDistanceTo(this);
+			push += CollisionDistance / 10;
+		}
+	}*/
+
 	// Move bird forwards
 	AddActorLocalOffset(LocalMove, true);
 
@@ -92,7 +102,7 @@ void ABirdPawn::Tick(float DeltaSeconds)
 
 	DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds; // Update pitch
 	DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
-	DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds; //Update roll
+	DeltaRotation.Roll = (CurrentRollSpeed) * DeltaSeconds; //Update roll
 
 	// Rotate bird
 	AddActorLocalRotation(DeltaRotation);
