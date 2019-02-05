@@ -29,7 +29,7 @@ public:
 
 	// Soft collision sphere
 	UPROPERTY(EditAnywhere, Category = Collision)
-		USphereComponent* CollisionSphere;
+		class USphereComponent* CollisionSphere;
 
 	// Camera components
 	UPROPERTY(EditAnywhere)
