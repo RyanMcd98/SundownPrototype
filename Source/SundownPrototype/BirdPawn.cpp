@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "Math/Vector.h"
 
 // Sets default values
 ABirdPawn::ABirdPawn()
@@ -61,32 +62,30 @@ void ABirdPawn::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Spline found!"));
 		SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(0.0f, ESplineCoordinateSpace::World));
 	}
-
-	BindDynamic(CollisionSphere->OnComponentBeginOverlap, Collide);
 	
 	Super::BeginPlay();
 }
 
-void ABirdPawn::Collide()
-{
-	float weighting = 0;
-
-	CollisionSphere->GetOverlappingActors(OverlappingActors);
-	float push = 0.0f;
-
-	if (OverlappingActors.Num() > 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Overlap!"));
-		for (int i = 0; i < OverlappingActors.Num(); i++) {
-			FVector normalVec = OverlappingActors[i]->GetActorLocation - GetActorLocation();
-			normalVec.GetSafeNormal(1.0f);
-
-			// Deflect along the surface when we collide.
-			FRotator CurrentRotation = GetActorRotation();
-			SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), normalVec.ToOrientationQuat(), 0.025f));
-		}
-	}
-
-}
+//void ABirdPawn::Collide()
+//{
+//	float weighting = 0;
+//
+//	CollisionSphere->GetOverlappingActors(OverlappingActors);
+//	float push = 0.0f;
+//
+//	if (OverlappingActors.Num() > 0) {
+//		UE_LOG(LogTemp, Warning, TEXT("Overlap!"));
+//		for (int i = 0; i < OverlappingActors.Num(); i++) {
+//			FVector normalVec = OverlappingActors[i]->GetActorLocation - GetActorLocation();
+//			normalVec.GetSafeNormal(1.0f);
+//
+//			// Deflect along the surface when we collide.
+//			FRotator CurrentRotation = GetActorRotation();
+//			SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), normalVec.ToOrientationQuat(), 0.025f));
+//		}
+//	}
+//
+//}
 
 void ABirdPawn::Tick(float DeltaSeconds)
 {
@@ -124,11 +123,27 @@ void ABirdPawn::Tick(float DeltaSeconds)
 
 void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Hit!"));
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 
 	// Deflect along the surface when we collide.
 	FRotator CurrentRotation = GetActorRotation();
 	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.025f));
+}
+
+void ABirdPawn::NotifyActorBeginOverlap(class AActor* other) 
+{
+	CurrentForwardSpeed = 0.0f;
+
+	UE_LOG(LogTemp, Warning, TEXT("Overlap!"));
+	Super::NotifyActorBeginOverlap(other);
+	
+	FVector normalVec = (other->GetActorLocation() - this->GetActorLocation());
+	normalVec.Normalize();
+	
+	// Deflect along the surface when we collide.
+	FRotator CurrentRotation = GetActorRotation();
+	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), normalVec.ToOrientationQuat(), 0.025f));
 }
 
 // Called to bind functionality to input
