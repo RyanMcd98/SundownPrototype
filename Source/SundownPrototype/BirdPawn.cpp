@@ -8,16 +8,34 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "UnrealMath.h"
 
 // Sets default values
 ABirdPawn::ABirdPawn()
 {
-	// Create root component
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
+	CollisionSphere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Collision Mesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("StaticMesh'/Engine/EditorMeshes/EditorSphere.EditorSphere'"));
+	if (SphereMeshAsset.Succeeded()) {
+		CollisionSphere->SetStaticMesh(SphereMeshAsset.Object);
+		CollisionSphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		CollisionSphere->SetWorldScale3D(FVector(1.0f));
+		CollisionSphere->bVisible = false;
+		CollisionSphere->bUseDefaultCollision = true;
+	}
+
+	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bird Mesh"));
+	BirdMesh->AttachTo(CollisionSphere);
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BirdMeshAsset(TEXT("SkeletalMesh'/Game/NewBirdModel/BirdNewUv.BirdNewUv'"));
+	if (BirdMeshAsset.Succeeded()) {
+		BirdMesh->SetSkeletalMesh(BirdMeshAsset.Object);
+		BirdMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		BirdMesh->SetRelativeRotation(FRotator(0.0f, 0.0f, -90.0f));
+		BirdMesh->SetWorldScale3D(FVector(1.0f));
+	}
 
 	 // Create a particle system
 	FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
-	FireParticleSystem->SetupAttachment(RootComponent);
+	FireParticleSystem->SetupAttachment(CollisionSphere);
 	FireParticleSystem->bAutoActivate = true;
 	FireParticleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 00.0f));
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
@@ -28,7 +46,7 @@ ABirdPawn::ABirdPawn()
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
-	mCameraSpringArm->SetupAttachment(RootComponent);
+	mCameraSpringArm->SetupAttachment(CollisionSphere);
 	mCameraSpringArm->bUsePawnControlRotation = false; // Rotate the arm based on the controller
 	mCameraSpringArm->bEnableCameraLag = false;
 	mCameraSpringArm->CameraLagSpeed = CamLag;
@@ -39,8 +57,8 @@ ABirdPawn::ABirdPawn()
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Create the collision sphere
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	CollisionSphere->SetupAttachment(RootComponent);	
+	//CollisionSphere = CreateDefaultSubobject<USphereMeshComponent>(TEXT("CollisionSphere"));
+	//CollisionSphere->SetupAttachment(RootComponent);	
 
 	// Set handling parameters
 	Acceleration = 500.0f;
@@ -61,31 +79,8 @@ void ABirdPawn::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Spline found!"));
 		SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(0.0f, ESplineCoordinateSpace::World));
 	}
-
-	BindDynamic(CollisionSphere->OnComponentBeginOverlap, Collide);
 	
 	Super::BeginPlay();
-}
-
-void ABirdPawn::Collide()
-{
-	float weighting = 0;
-
-	CollisionSphere->GetOverlappingActors(OverlappingActors);
-	float push = 0.0f;
-
-	if (OverlappingActors.Num() > 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Overlap!"));
-		for (int i = 0; i < OverlappingActors.Num(); i++) {
-			FVector normalVec = OverlappingActors[i]->GetActorLocation - GetActorLocation();
-			normalVec.GetSafeNormal(1.0f);
-
-			// Deflect along the surface when we collide.
-			FRotator CurrentRotation = GetActorRotation();
-			SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), normalVec.ToOrientationQuat(), 0.025f));
-		}
-	}
-
 }
 
 void ABirdPawn::Tick(float DeltaSeconds)
@@ -95,12 +90,11 @@ void ABirdPawn::Tick(float DeltaSeconds)
 
 	if (Spline) // Check to make sure reference is valid
 	{
+		FRotator CurrentRotation = GetActorRotation();
 		if (SplineDistance < Spline->GetDistanceAlongSplineAtSplinePoint(Spline->GetNumberOfSplinePoints() - 1))
 		{
-			//mBoundSphere->SetWorldLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World));
-			//SetActorLocation(mBoundSphere->GetComponentLocation());
 			SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Set location to location at distance along spline
-			SetActorRotation(Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Aaaand rotation to rotation at distance along spline
+			SetActorRotation(FMath::RInterpTo(CurrentRotation, Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), DeltaSeconds, 1.0f)); // Aaaand rotation to rotation at distance along spline
 		}
 	}
 
@@ -128,7 +122,7 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 
 	// Deflect along the surface when we collide.
 	FRotator CurrentRotation = GetActorRotation();
-	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.025f));
+	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
 }
 
 // Called to bind functionality to input

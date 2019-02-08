@@ -3,17 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
-#include "Components/SphereComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/SplineComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
 
 UCLASS()
-class SUNDOWNPROTOTYPE_API ABirdPawn : public ACharacter
+class SUNDOWNPROTOTYPE_API ABirdPawn : public APawn
 {
 	GENERATED_BODY()
 
@@ -21,15 +22,19 @@ public:
 	// Sets default values for this character's properties
 	ABirdPawn();
 
+	// Soft collision sphere
+	UPROPERTY(EditAnywhere, Category = Collision)
+		UStaticMeshComponent* CollisionSphere;
+
+	// Skeletal mesh for bird
+	UPROPERTY(EditAnywhere)
+		USkeletalMeshComponent* BirdMesh;
+
 	// Spline system
 	TArray<AActor*> Splines;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 		TSubclassOf<class AActor>  SplineClassType;
 	USplineComponent* Spline;
-
-	// Soft collision sphere
-	UPROPERTY(EditAnywhere, Category = Collision)
-		class USphereComponent* CollisionSphere;
 
 	// Camera components
 	UPROPERTY(EditAnywhere)
