@@ -24,7 +24,7 @@ ABirdPawn::ABirdPawn()
 	}
 
 	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bird Mesh"));
-	BirdMesh->AttachTo(CollisionSphere);
+	BirdMesh->SetupAttachment(CollisionSphere);
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BirdMeshAsset(TEXT("SkeletalMesh'/Game/NewBirdModel/BirdNewUv.BirdNewUv'"));
 	if (BirdMeshAsset.Succeeded()) {
 		BirdMesh->SetSkeletalMesh(BirdMeshAsset.Object);
@@ -56,16 +56,12 @@ ABirdPawn::ABirdPawn()
 	mCamera->SetupAttachment(mCameraSpringArm, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Create the collision sphere
-	//CollisionSphere = CreateDefaultSubobject<USphereMeshComponent>(TEXT("CollisionSphere"));
-	//CollisionSphere->SetupAttachment(RootComponent);	
-
 	// Set handling parameters
-	Acceleration = 500.0f;
+	Acceleration = 250.0f;
 	TurnSpeed = 45.0f;
-	MaxSpeed = 6000.0f;
-	MinSpeed = 3000.0f;
-	CurrentForwardSpeed = 3000.0f;
+	MaxSpeed = 3000.0f;
+	MinSpeed = 0.0f;
+	CurrentForwardSpeed = 0.0f;
 	SplineDistance = 0.0f;
 }
 
@@ -85,6 +81,8 @@ void ABirdPawn::BeginPlay()
 
 void ABirdPawn::Tick(float DeltaSeconds)
 {
+	CurrentDelta = DeltaSeconds;
+
 	// SPLINE MOVEMENT --------------------------------------------------
 	SplineDistance = SplineDistance + SplineSpeed; // Increment distance along spline
 
@@ -97,9 +95,15 @@ void ABirdPawn::Tick(float DeltaSeconds)
 			SetActorRotation(FMath::RInterpTo(CurrentRotation, Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), DeltaSeconds, 1.0f)); // Aaaand rotation to rotation at distance along spline
 		}
 	}
-
-	const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
 	
+	if (move && CurrentForwardSpeed < MaxSpeed) {
+		CurrentForwardSpeed += Acceleration;
+	}
+	else if (!move && CurrentForwardSpeed > 0.0f){
+		CurrentForwardSpeed -= Acceleration;
+	}
+
+	const FVector LocalMove = FVector(CurrentForwardSpeed * CurrentDelta, 0.f, 0.f);
 	// Move bird forwards
 	AddActorLocalOffset(LocalMove, true);
 
@@ -119,10 +123,16 @@ void ABirdPawn::Tick(float DeltaSeconds)
 void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+	// Set move to false (stop Cinder from moving on hit)
+	move = false; 
+	// Vector to follow below (2.5f backwards)
+	const FVector LocalMove = FVector(-2.5, 0.f, 0.f);
+	// Move backwards to avoid calling NotifyHit() again
+	AddActorLocalOffset(LocalMove, true); 
 
 	// Deflect along the surface when we collide.
-	FRotator CurrentRotation = GetActorRotation();
-	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
+	//FRotator CurrentRotation = GetActorRotation();
+	//SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
 }
 
 // Called to bind functionality to input
@@ -132,22 +142,32 @@ void ABirdPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	check(PlayerInputComponent);
 
 	// Bind our control axis' to callback functions
-	PlayerInputComponent->BindAxis("Thrust", this, &ABirdPawn::ThrustInput);
+	PlayerInputComponent->BindAction("Move", IE_Released, this, &ABirdPawn::Move);
 	PlayerInputComponent->BindAxis("MoveUp", this, &ABirdPawn::MoveUpInput);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABirdPawn::MoveRightInput);
+	
 }
 
-void ABirdPawn::ThrustInput(float Val)
-{
-	// Is there any input?
-	bool bHasInput = !FMath::IsNearlyEqual(Val, 0.f);
-	// If input is not held down, reduce speed
-	float CurrentAcc = bHasInput ? (Val * Acceleration) : (-0.5f * Acceleration);
-	// Calculate new speed
-	float NewForwardSpeed = CurrentForwardSpeed + (GetWorld()->GetDeltaSeconds() * CurrentAcc);
-	// Clamp between MinSpeed and MaxSpeed
-	CurrentForwardSpeed = FMath::Clamp(NewForwardSpeed, MinSpeed, MaxSpeed);
+void ABirdPawn::Move() {
+	if (move == false) {
+		move = true;
+	}
+	else {
+		move = false;
+	}
 }
+
+//void ABirdPawn::MoveForwardInput(float Val)
+//{
+//	// Is there any input?
+//	bool bHasInput = !FMath::IsNearlyEqual(Val, 0.f);
+//	// If input is not held down, reduce speed
+//	float CurrentAcc = bHasInput ? (Val * Acceleration) : (-0.5f * Acceleration);
+//	// Calculate new speed
+//	float NewForwardSpeed = CurrentForwardSpeed + (GetWorld()->GetDeltaSeconds() * CurrentAcc);
+//	// Clamp between MinSpeed and MaxSpeed
+//	CurrentForwardSpeed = FMath::Clamp(NewForwardSpeed, MinSpeed, MaxSpeed);
+//}
 
 void ABirdPawn::MoveUpInput(float Val)
 {

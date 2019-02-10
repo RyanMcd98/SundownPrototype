@@ -48,8 +48,11 @@ public:
 
 protected:
 
+	/** Bound to the movement bool */
+	void Move();
+
 	/** Bound to the thrust axis */
-	void ThrustInput(float Val);
+	/*void MoveForwardInput(float Val);*/
 
 	/** Bound to the vertical axis */
 	void MoveUpInput(float Val);
@@ -64,6 +67,9 @@ protected:
 	// End AActor overrides
 
 private:
+
+	/** Move is set to false by default */
+	bool move = false;
 
 	/** Spline speed intensity */
 	UPROPERTY(Category = Spline, EditAnywhere)
@@ -106,6 +112,9 @@ private:
 
 	// Spline distance variable for handling spline movement
 	float SplineDistance;
+
+	// Current delta seconds
+	float CurrentDelta;
 
 protected:
 	// Called to bind functionality to input
