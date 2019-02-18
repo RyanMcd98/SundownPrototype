@@ -96,6 +96,7 @@ private:
 		float CamLag;
 
 	/** Current forward speed */
+	UPROPERTY(Category = Movement, EditAnywhere)
 	float CurrentForwardSpeed;
 
 	/** Current yaw speed */
@@ -106,15 +107,6 @@ private:
 
 	/** Current roll speed */
 	float CurrentRollSpeed;
-
-	/** Overlapping actors array */
-	TArray<AActor*> OverlappingActors;
-
-	// Spline distance variable for handling spline movement
-	float SplineDistance;
-
-	// Current delta seconds
-	float CurrentDelta;
 
 protected:
 	// Called to bind functionality to input

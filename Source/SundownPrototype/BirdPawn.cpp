@@ -37,7 +37,7 @@ ABirdPawn::ABirdPawn()
 	FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
 	FireParticleSystem->SetupAttachment(CollisionSphere);
 	FireParticleSystem->bAutoActivate = true;
-	FireParticleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 00.0f));
+	FireParticleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
 	if (FireParticleAsset.Succeeded())
 	{
@@ -57,12 +57,11 @@ ABirdPawn::ABirdPawn()
 	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Set handling parameters
-	Acceleration = 250.0f;
+	Acceleration = 1.0f;
 	TurnSpeed = 45.0f;
-	MaxSpeed = 3000.0f;
+	MaxSpeed = 1000.0f;
 	MinSpeed = 0.0f;
 	CurrentForwardSpeed = 0.0f;
-	SplineDistance = 0.0f;
 }
 
 void ABirdPawn::BeginPlay()
@@ -73,7 +72,7 @@ void ABirdPawn::BeginPlay()
 	if (Spline)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spline found!"));
-		SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(0.0f, ESplineCoordinateSpace::World));
+		//SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(0.0f, ESplineCoordinateSpace::World));
 	}
 	
 	Super::BeginPlay();
@@ -81,20 +80,18 @@ void ABirdPawn::BeginPlay()
 
 void ABirdPawn::Tick(float DeltaSeconds)
 {
-	CurrentDelta = DeltaSeconds;
-
 	// SPLINE MOVEMENT --------------------------------------------------
-	SplineDistance = SplineDistance + SplineSpeed; // Increment distance along spline
+	//SplineDistance = SplineDistance + SplineSpeed; // Increment distance along spline
 
-	if (Spline) // Check to make sure reference is valid
-	{
-		FRotator CurrentRotation = GetActorRotation();
-		if (SplineDistance < Spline->GetDistanceAlongSplineAtSplinePoint(Spline->GetNumberOfSplinePoints() - 1))
-		{
-			SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Set location to location at distance along spline
-			SetActorRotation(FMath::RInterpTo(CurrentRotation, Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), DeltaSeconds, 1.0f)); // Aaaand rotation to rotation at distance along spline
-		}
-	}
+	//if (Spline) // Check to make sure reference is valid
+	//{
+	//	FRotator CurrentRotation = GetActorRotation();
+	//	if (SplineDistance < Spline->GetDistanceAlongSplineAtSplinePoint(Spline->GetNumberOfSplinePoints() - 1))
+	//	{
+	//		SetActorLocation(Spline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World)); // Set location to location at distance along spline
+	//		SetActorRotation(FMath::RInterpTo(CurrentRotation, Spline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), DeltaSeconds, 1.0f)); // Aaaand rotation to rotation at distance along spline
+	//	}
+	//}
 	
 	if (move && CurrentForwardSpeed < MaxSpeed) {
 		CurrentForwardSpeed += Acceleration;
@@ -103,7 +100,7 @@ void ABirdPawn::Tick(float DeltaSeconds)
 		CurrentForwardSpeed -= Acceleration;
 	}
 
-	const FVector LocalMove = FVector(CurrentForwardSpeed * CurrentDelta, 0.f, 0.f);
+	const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
 	// Move bird forwards
 	AddActorLocalOffset(LocalMove, true);
 
@@ -125,6 +122,7 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 	// Set move to false (stop Cinder from moving on hit)
 	move = false; 
+	CurrentForwardSpeed = 0.0f;
 	// Vector to follow below (2.5f backwards)
 	const FVector LocalMove = FVector(-2.5, 0.f, 0.f);
 	// Move backwards to avoid calling NotifyHit() again
@@ -145,7 +143,6 @@ void ABirdPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("Move", IE_Released, this, &ABirdPawn::Move);
 	PlayerInputComponent->BindAxis("MoveUp", this, &ABirdPawn::MoveUpInput);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABirdPawn::MoveRightInput);
-	
 }
 
 void ABirdPawn::Move() {

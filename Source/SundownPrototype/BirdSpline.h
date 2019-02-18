@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Classes/Components/SplineComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Runtime/Engine/Classes/Engine/EngineTypes.h"
 #include "BirdSpline.generated.h"
 
 UCLASS()
@@ -19,4 +21,33 @@ public:
 	/** StaticMesh component that will be the visuals for our flying pawn */
 	UPROPERTY(EditAnywhere, Category = SplineSettings)
 	USplineComponent* MovementSpline;
+
+	/** Starting cylinder to attach to spline */
+	UPROPERTY(EditAnywhere, Category = SplineSettings)
+	UStaticMeshComponent* StartCylinder;
+
+	/** Bounds in which movement applies whilst on the spline */
+	UPROPERTY(EditAnywhere, Category = SplineSettings)
+	UStaticMeshComponent* SplineBounds;
+
+	/** Reference to player */
+	TArray<AActor*> Pawns;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Pawn)
+		TSubclassOf<class AActor>  PawnClassType;
+	APawn* Pawn;
+
+	/** Transform rules for snap to spline */
+	FAttachmentTransformRules TransformRules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+protected:
+
+	/** Override tick */
+	virtual void BeginPlay();
+	virtual void Tick(float DeltaSeconds);
+	virtual void NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+	/** End overrides */
+
+private:
+	bool SplineStarted = false; // Whether spline is being travelled along based on collision with the StartCylinder
+	float SplineDistance = 0.0f; // Distance along spline
 };
