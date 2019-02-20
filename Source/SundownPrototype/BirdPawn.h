@@ -30,11 +30,11 @@ public:
 	UPROPERTY(EditAnywhere)
 		USkeletalMeshComponent* BirdMesh;
 
-	// Spline system
-	TArray<AActor*> Splines;
+	// Spline reference variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 		TSubclassOf<class AActor>  SplineClassType;
-	USplineComponent* Spline;
+	USplineComponent* Spline; // the spline
+	UStaticMeshComponent* SplineBounds; // the spline bounds
 
 	// Camera components
 	UPROPERTY(EditAnywhere)
@@ -71,9 +71,8 @@ private:
 	/** Move is set to false by default */
 	bool move = false;
 
-	/** Spline speed intensity */
-	UPROPERTY(Category = Spline, EditAnywhere)
-		float SplineSpeed;
+	/** Spline movement bool, false by default */
+	bool OnSpline = false;
 
 	/** How quickly forward speed changes */
 	UPROPERTY(Category = Movement, EditAnywhere)

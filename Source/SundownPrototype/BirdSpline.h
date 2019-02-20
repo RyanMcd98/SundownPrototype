@@ -26,18 +26,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = SplineSettings)
 	UStaticMeshComponent* StartCylinder;
 
-	/** Bounds in which movement applies whilst on the spline */
-	UPROPERTY(EditAnywhere, Category = SplineSettings)
-	UStaticMeshComponent* SplineBounds;
-
 	/** Reference to player */
 	TArray<AActor*> Pawns;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Pawn)
 		TSubclassOf<class AActor>  PawnClassType;
 	APawn* Pawn;
-
-	/** Transform rules for snap to spline */
-	FAttachmentTransformRules TransformRules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
 protected:
 

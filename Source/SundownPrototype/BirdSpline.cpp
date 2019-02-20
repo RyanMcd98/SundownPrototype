@@ -32,21 +32,11 @@ ABirdSpline::ABirdSpline()
 	if (CylinderMeshAsset.Succeeded()) {
 		StartCylinder->SetStaticMesh(CylinderMeshAsset.Object);
 		StartCylinder->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		StartCylinder->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 		StartCylinder->SetWorldScale3D(FVector(1.0f));
-		StartCylinder->SetMobility(EComponentMobility::Static);
+		StartCylinder->SetMobility(EComponentMobility::Movable);
 		StartCylinder->bVisible = false;
 		StartCylinder->bCastDynamicShadow = false;
-	}
-
-	SplineBounds = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Bounds Mesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("StaticMesh'/Engine/EngineMeshes/Sphere.Sphere'"));
-	if (SphereMeshAsset.Succeeded()) {
-		SplineBounds->SetStaticMesh(SphereMeshAsset.Object);
-		SplineBounds->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-		SplineBounds->SetWorldScale3D(FVector(1.0f));
-		SplineBounds->SetMobility(EComponentMobility::Movable);
-		SplineBounds->bVisible = true;
-		SplineBounds->bCastDynamicShadow = false;
 	}
 }
 
@@ -64,12 +54,11 @@ void ABirdSpline::BeginPlay() {
 
 void ABirdSpline::Tick(float DeltaSeconds) {
 	Super::Tick(DeltaSeconds);
-
-	UE_LOG(LogTemp, Warning, TEXT("Tick!"));
 	if ((SplineStarted) && (SplineDistance < MovementSpline->GetDistanceAlongSplineAtSplinePoint(MovementSpline->GetNumberOfSplinePoints() - 1))) {
-		SplineDistance++; SplineDistance++;
-		UE_LOG(LogTemp, Warning, TEXT("Spline should be moving!"));
-		SplineBounds->SetWorldLocation(MovementSpline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), false);
+		SplineDistance += 10;
+		//UE_LOG(LogTemp, Warning, TEXT("Spline should be moving!"));
+		StartCylinder->SetWorldLocation(MovementSpline->GetLocationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), false);
+		StartCylinder->SetRelativeRotation(MovementSpline->GetRotationAtDistanceAlongSpline(SplineDistance, ESplineCoordinateSpace::World), false);
 		}
 }
 
