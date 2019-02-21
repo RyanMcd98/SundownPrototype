@@ -74,6 +74,9 @@ private:
 	/** Spline movement bool, false by default */
 	bool OnSpline = false;
 
+	/** Spline location vector */
+	FVector SplineLoc = FVector(0.0f, 0.0f, 0.0f);
+
 	/** How quickly forward speed changes */
 	UPROPERTY(Category = Movement, EditAnywhere)
 		float Acceleration;

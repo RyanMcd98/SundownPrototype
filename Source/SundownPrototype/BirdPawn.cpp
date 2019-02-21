@@ -25,7 +25,7 @@ ABirdPawn::ABirdPawn()
 
 	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bird Mesh"));
 	BirdMesh->SetupAttachment(CollisionSphere);
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BirdMeshAsset(TEXT("SkeletalMesh'/Game/NewBirdModel/BirdNewUv.BirdNewUv'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BirdMeshAsset(TEXT("SkeletalMesh'/Game/Bird/Assets/cindermesh.cindermesh'"));
 	if (BirdMeshAsset.Succeeded()) {
 		BirdMesh->SetSkeletalMesh(BirdMeshAsset.Object);
 		BirdMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
@@ -33,8 +33,8 @@ ABirdPawn::ABirdPawn()
 		BirdMesh->SetWorldScale3D(FVector(1.0f));
 	}
 
-	 // Create a particle system
-	FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
+	// Create a particle system
+	/*FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
 	FireParticleSystem->SetupAttachment(CollisionSphere);
 	FireParticleSystem->bAutoActivate = true;
 	FireParticleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
@@ -42,7 +42,7 @@ ABirdPawn::ABirdPawn()
 	if (FireParticleAsset.Succeeded())
 	{
 		FireParticleSystem->SetTemplate(FireParticleAsset.Object);
-	}
+	}*/
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
@@ -58,8 +58,8 @@ ABirdPawn::ABirdPawn()
 
 	// Set handling parameters
 	Acceleration = 1.0f;
-	TurnSpeed = 45.0f;
-	MaxSpeed = 1000.0f;
+	TurnSpeed = 75.0f;
+	MaxSpeed = 500.0f;
 	MinSpeed = 0.0f;
 	CurrentForwardSpeed = 0.0f;
 }
@@ -75,7 +75,7 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	// SPLINE MOVEMENT --------------------------------------------------
 	if (OnSpline) // Check to make sure reference is valid
 	{
-		SetActorLocation(SplineBounds->GetComponentLocation()); // Set location to location at distance along spline
+		//SetActorLocation(FMath::VInterpTo(GetActorLocation(), SplineBounds->GetComponentLocation(), DeltaSeconds, 1.0f)); // Set location to location at distance along spline
 		SetActorRotation(FMath::RInterpTo(GetActorRotation(), SplineBounds->GetComponentRotation() + FRotator(0.0f, -90.0f, 0.0f), DeltaSeconds, 5.0f)); // Aaaand rotation to rotation at distance along spline
 	}
 	else 
@@ -97,7 +97,7 @@ void ABirdPawn::Tick(float DeltaSeconds)
 
 		DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds; // Update pitch
 		DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
-		DeltaRotation.Roll = CurrentRollSpeed * DeltaSeconds; //Update roll
+		DeltaRotation.Roll = 0.0f; //Update roll
 															  
 		AddActorLocalRotation(DeltaRotation);
 	}
@@ -109,13 +109,6 @@ void ABirdPawn::Tick(float DeltaSeconds)
 void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
-	// Set move to false (stop Cinder from moving on hit)
-	move = false; 
-	CurrentForwardSpeed = 0.0f;
-	// Vector to follow below (2.5f backwards)
-	const FVector LocalMove = FVector(-2.5, 0.f, 0.f);
-	// Move backwards to avoid calling NotifyHit() again
-	AddActorLocalOffset(LocalMove, true); 
 
 	if (Other->GetClass()->IsChildOf(SplineClassType)) {
 		OnSpline = true;
@@ -127,8 +120,16 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 	}
 
 	// Deflect along the surface when we collide.
-	//FRotator CurrentRotation = GetActorRotation();
-	//SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
+	FRotator CurrentRotation = GetActorRotation();
+	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
+
+	// Set move to false (stop Cinder from moving on hit)
+	//move = false; 
+	//CurrentForwardSpeed = 0.0f;
+	// Vector to follow below (2.5f backwards)
+	//const FVector LocalMove = FVector(-2.5, 0.f, 0.f);
+	// Move backwards to avoid calling NotifyHit() again
+	//AddActorLocalOffset(LocalMove, true); 
 }
 
 // Called to bind functionality to input
@@ -155,15 +156,14 @@ void ABirdPawn::Move() {
 void ABirdPawn::MoveUpInput(float Val)
 {
 	if (OnSpline) {
-		FVector NewLocation = FVector(0.0f, 10.0f * Val, 0.0f);
-		SetActorRelativeLocation(FVector(NewLocation));
+			SetActorLocation(FVector(SplineBounds->GetComponentLocation()));
 	}
 	else {
 		// Target pitch speed is based in input
 		float TargetPitchSpeed = (Val * TurnSpeed * -1.f);
 
 		// When steering, we decrease pitch slightly
-		TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * -0.2f);
+		//TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * -0.2f);
 
 		// Smoothly interpolate to target pitch speed
 		CurrentPitchSpeed = FMath::FInterpTo(CurrentPitchSpeed, TargetPitchSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
@@ -173,8 +173,7 @@ void ABirdPawn::MoveUpInput(float Val)
 void ABirdPawn::MoveRightInput(float Val)
 {
 	if (OnSpline) {
-		FVector NewLocation = FVector(0.0f, 0.0f, 10.0f * Val);
-		SetActorRelativeLocation(FVector(NewLocation));
+		SetActorLocation(FVector(SplineBounds->GetComponentLocation()));
 	}
 	else {
 		// Target yaw speed is based on input
@@ -182,15 +181,15 @@ void ABirdPawn::MoveRightInput(float Val)
 
 		// Smoothly interpolate to target yaw speed
 		CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
-
-		// Is there any left/right input?
-		const bool bIsTurning = FMath::Abs(Val) > 0.2f;
-
-		// If turning, yaw value is used to influence roll
-		// If not turning, roll to reverse current roll value.
-		float TargetRollSpeed = bIsTurning ? (CurrentYawSpeed * 1.0f) : (GetActorRotation().Roll * -2.f);
-
-		// Smoothly interpolate roll speed
-		CurrentRollSpeed = FMath::FInterpTo(CurrentRollSpeed, TargetRollSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
 	}
+
+	// Is there any left/right input?
+	//const bool bIsTurning = FMath::Abs(Val) > 0.2f;
+
+	// If turning, yaw value is used to influence roll
+	// If not turning, roll to reverse current roll value.
+	//float TargetRollSpeed = bIsTurning ? (CurrentYawSpeed * 1.0f) : (GetActorRotation().Roll * -2.f);
+
+	// Smoothly interpolate roll speed
+	//CurrentRollSpeed = FMath::FInterpTo(CurrentRollSpeed, TargetRollSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
 }
