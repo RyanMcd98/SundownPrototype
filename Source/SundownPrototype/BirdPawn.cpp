@@ -7,100 +7,111 @@
 #include "GameFramework/Controller.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Engine.h"
 #include "Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "UnrealMath.h"
 
 // Sets default values
 ABirdPawn::ABirdPawn()
 {
-	CollisionSphere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Collision Mesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("StaticMesh'/Engine/EditorMeshes/EditorSphere.EditorSphere'"));
-	if (SphereMeshAsset.Succeeded()) {
-		CollisionSphere->SetStaticMesh(SphereMeshAsset.Object);
-		CollisionSphere->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-		CollisionSphere->SetWorldScale3D(FVector(1.0f));
-		CollisionSphere->bVisible = false;
-		CollisionSphere->bUseDefaultCollision = true;
-	}
-
-	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Bird Mesh"));
-	BirdMesh->SetupAttachment(CollisionSphere);
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BirdMeshAsset(TEXT("SkeletalMesh'/Game/Bird/Assets/cindermesh.cindermesh'"));
-	if (BirdMeshAsset.Succeeded()) {
-		BirdMesh->SetSkeletalMesh(BirdMeshAsset.Object);
-		BirdMesh->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-		BirdMesh->SetRelativeRotation(FRotator(0.0f, 0.0f, -90.0f));
-		BirdMesh->SetWorldScale3D(FVector(1.0f));
-	}
-
-	// Create a particle system
-	/*FireParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Fire Particles"));
-	FireParticleSystem->SetupAttachment(CollisionSphere);
-	FireParticleSystem->bAutoActivate = true;
-	FireParticleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireParticleAsset(TEXT("/Game/StarterContent/Particles/P_Fire.P_Fire"));
-	if (FireParticleAsset.Succeeded())
-	{
-		FireParticleSystem->SetTemplate(FireParticleAsset.Object);
-	}*/
-
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	mCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("mCameraSpringArm"));
-	mCameraSpringArm->SetupAttachment(CollisionSphere);
-	mCameraSpringArm->bUsePawnControlRotation = false; // Rotate the arm based on the controller
+	mCameraSpringArm->SetupAttachment(RootComponent);
+	mCameraSpringArm->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 	mCameraSpringArm->bEnableCameraLag = false;
-	mCameraSpringArm->CameraLagSpeed = CamLag;
+	//mCameraSpringArm->CameraLagSpeed = CamLag;
 
 	//// Create a follow camera
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	mCamera->SetupAttachment(mCameraSpringArm, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	mCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	mCamera->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 
 	// Set handling parameters
 	Acceleration = 1.0f;
-	TurnSpeed = 75.0f;
-	MaxSpeed = 500.0f;
-	MinSpeed = 0.0f;
-	CurrentForwardSpeed = 0.0f;
 }
 
 void ABirdPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Set relevant character movement properties
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+	GetCharacterMovement()->AirControl = 100.0f;
+	GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 90.0f);
+	GetCharacterMovement()->MaxAcceleration = 600.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 4000.0f;
+	//GetCharacterMovement()->Velocity = FVector(0.0f, 0.0f, 0.0f);
 }
 
 void ABirdPawn::Tick(float DeltaSeconds)
 {
-	// SPLINE MOVEMENT --------------------------------------------------
-	if (OnSpline) // Check to make sure reference is valid
-	{
-		//SetActorLocation(FMath::VInterpTo(GetActorLocation(), SplineBounds->GetComponentLocation(), DeltaSeconds, 1.0f)); // Set location to location at distance along spline
-		SetActorRotation(FMath::RInterpTo(GetActorRotation(), SplineBounds->GetComponentRotation() + FRotator(0.0f, -90.0f, 0.0f), DeltaSeconds, 5.0f)); // Aaaand rotation to rotation at distance along spline
-	}
-	else 
-	{
-		// MOVEMENT BOOLS
-		if (move && CurrentForwardSpeed < MaxSpeed) {
-			CurrentForwardSpeed += Acceleration;
-		}
-		else if (!move && CurrentForwardSpeed > 0.0f) {
-			CurrentForwardSpeed -= Acceleration;
-		}
+	// FLYING
+	// Step one: Set liftNormalized
 
-		const FVector LocalMove = FVector(CurrentForwardSpeed * DeltaSeconds, 0.f, 0.f);
-		// Move bird forwards
-		AddActorLocalOffset(LocalMove, true);
+	// A) Calculate control inclination
+	FVector controlForwardVec = UKismetMathLibrary::GetUpVector(FRotator(GetControlRotation()));
+	controlInclination = FVector::DotProduct(controlForwardVec, GetActorForwardVector()); // control inclination ranges from -1 to 1 based on the rotational difference between camera up vector and actor forward vector
 
-		// Calculate change in rotation
-		FRotator DeltaRotation(0, 0, 0);	// New rotation for updating rotation		
+	// B) Get value from angle curve using control inclination
+	float AngCurveVal = AngCurve->GetFloatValue(FMath::Acos(controlInclination) - 90.0f);
 
-		DeltaRotation.Pitch = CurrentPitchSpeed * DeltaSeconds; // Update pitch
-		DeltaRotation.Yaw = CurrentYawSpeed * DeltaSeconds; // Update yaw
-		DeltaRotation.Roll = 0.0f; //Update roll
-															  
-		AddActorLocalRotation(DeltaRotation);
-	}
+	// C) Get value from velocity curve
+	FVector VelocityVec = GetCharacterMovement()->Velocity;
+	VelocityVec.Z = FMath::Clamp<float>(VelocityVec.Z, -4000, 0); // Clamp Z within appropriate velocity as this is downwards movement
+	float VelCurveVal = VelCurve->GetFloatValue(VelocityVec.Size());
+
+	// D) Calculate lift normalized by multiplying the flight angle curve and velocity curve values
+	liftNormalized = VelCurveVal * AngCurveVal;
+
+	// Step two: set flyspeedHold
+
+	// A) Calculate mapRangeClamped
+	float mapRangeClamped;
+	// First convert Z velocity value to be within the correct range
+	FVector2D input = FVector2D(-500.0f, 0.0f);
+	FVector2D output = FVector2D(1.5f, 0.0f);
+	mapRangeClamped = FMath::GetMappedRangeValueClamped(input, output, GetCharacterMovement()->Velocity.Z);
+
+	// B) FInterp flyspeedHold towards mapRangeClamped
+	FMath::FInterpTo(flyspeedHold, mapRangeClamped, DeltaSeconds, FMath::Abs(controlInclination) + 0.5f);
+
+	// C) Get direction to fly in (forward vector of the control rotation's Z component)
+	FRotator flyDirection = FRotator(0.0f, 0.0f, GetControlRotation().GetComponentForAxis(EAxis::Z));
+	FVector flyForwardVector = UKismetMathLibrary::GetForwardVector(flyDirection);
+	
+	// D) Add the movement input in the correct direction, using flyspeedHold as weighting to slow down over time if no input
+	AddMovementInput(flyForwardVector, flyspeedHold);
+
+	// Step three: GRAVITY?
+
+	// A) Create force against gravity
+	float x = GetCharacterMovement()->Mass * GravityConstant * liftNormalized;
+	FVector force = FVector(0.0f, 0.0f, x);
+	// B) Add force
+	GetCharacterMovement()->AddForce(force);
+
+	// Step four: set angle of velocity
+
+	// A) Setup - from actor rotation and velocity
+	FVector UpInverse = UKismetMathLibrary::GetUpVector(GetActorRotation()) - 1;
+	FVector VelocityNormalized = GetCharacterMovement()->Velocity;
+	VelocityNormalized.Normalize();
+
+	// B) Perform dot product, set velocityAngle
+	velocityAngle = FMath::Acos(FVector::DotProduct(VelocityNormalized, UpInverse) - 90);
+
+	// Step five: Set flyingVelocity???
+	float flyingVelocity = GetCharacterMovement()->Velocity.Size();
+
+	// Step six: set rotation of actor
+
+	// Calculate change in rotation
+	FVector DirVelocity = FVector(GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, 0.0f);
+	FRotator DirRot = UKismetMathLibrary::MakeRotationFromAxes(FVector(DirVelocity), FVector(GetActorRightVector()), FVector(0.0f, 0.0f, 1.0f));
+	DirRot = FRotator(0.0f, 0.0f, DirRot.GetComponentForAxis(EAxis::Z));
+	SetActorRelativeRotation(DirRot);
 
 	// Call any parent class Tick implementation
 	Super::Tick(DeltaSeconds);
@@ -112,7 +123,6 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 
 	if (Other->GetClass()->IsChildOf(SplineClassType)) {
 		OnSpline = true;
-		move = false;
 		Spline = Cast<USplineComponent>(Hit.GetActor());
 		UE_LOG(LogTemp, Warning, TEXT("SplineCyl hit! 1/2"));
 		SplineBounds = Cast<UStaticMeshComponent>(Hit.GetComponent());
@@ -122,14 +132,6 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 	// Deflect along the surface when we collide.
 	FRotator CurrentRotation = GetActorRotation();
 	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
-
-	// Set move to false (stop Cinder from moving on hit)
-	//move = false; 
-	//CurrentForwardSpeed = 0.0f;
-	// Vector to follow below (2.5f backwards)
-	//const FVector LocalMove = FVector(-2.5, 0.f, 0.f);
-	// Move backwards to avoid calling NotifyHit() again
-	//AddActorLocalOffset(LocalMove, true); 
 }
 
 // Called to bind functionality to input
@@ -138,19 +140,19 @@ void ABirdPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
 
-	// Bind our control axis' to callback functions
-	PlayerInputComponent->BindAction("Move", IE_Released, this, &ABirdPawn::Move);
+	// Bind our control axis' to callback functions'
 	PlayerInputComponent->BindAxis("MoveUp", this, &ABirdPawn::MoveUpInput);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABirdPawn::MoveRightInput);
+	PlayerInputComponent->BindAxis("PitchInput", this, &ABirdPawn::PitchInput);
+	PlayerInputComponent->BindAxis("YawInput", this, &ABirdPawn::YawInput);
 }
 
-void ABirdPawn::Move() {
-	if (move == false && OnSpline == false) {
-		move = true;
-	}
-	else if (move == true) {
-		move = false;
-	}
+void ABirdPawn::PitchInput(float Val) {
+	AddControllerPitchInput(Val);
+}
+
+void ABirdPawn::YawInput(float Val) {
+	AddControllerYawInput(Val);
 }
 
 void ABirdPawn::MoveUpInput(float Val)
@@ -159,14 +161,7 @@ void ABirdPawn::MoveUpInput(float Val)
 			SetActorLocation(FVector(SplineBounds->GetComponentLocation()));
 	}
 	else {
-		// Target pitch speed is based in input
-		float TargetPitchSpeed = (Val * TurnSpeed * -1.f);
-
-		// When steering, we decrease pitch slightly
-		//TargetPitchSpeed += (FMath::Abs(CurrentYawSpeed) * -0.2f);
-
-		// Smoothly interpolate to target pitch speed
-		CurrentPitchSpeed = FMath::FInterpTo(CurrentPitchSpeed, TargetPitchSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
+		//AddMovementInput(GetActorForwardVector(), Acceleration * Val);
 	}
 }
 
@@ -181,15 +176,6 @@ void ABirdPawn::MoveRightInput(float Val)
 
 		// Smoothly interpolate to target yaw speed
 		CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
+		//AddMovementInput(GetActorRightVector(), Acceleration * Val);
 	}
-
-	// Is there any left/right input?
-	//const bool bIsTurning = FMath::Abs(Val) > 0.2f;
-
-	// If turning, yaw value is used to influence roll
-	// If not turning, roll to reverse current roll value.
-	//float TargetRollSpeed = bIsTurning ? (CurrentYawSpeed * 1.0f) : (GetActorRotation().Roll * -2.f);
-
-	// Smoothly interpolate roll speed
-	//CurrentRollSpeed = FMath::FInterpTo(CurrentRollSpeed, TargetRollSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
 }
