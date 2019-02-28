@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
@@ -14,21 +14,13 @@
 #include "BirdPawn.generated.h"
 
 UCLASS()
-class SUNDOWNPROTOTYPE_API ABirdPawn : public APawn
+class SUNDOWNPROTOTYPE_API ABirdPawn : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	ABirdPawn();
-
-	// Soft collision sphere
-	UPROPERTY(EditAnywhere, Category = Collision)
-		UStaticMeshComponent* CollisionSphere;
-
-	// Skeletal mesh for bird
-	UPROPERTY(EditAnywhere)
-		USkeletalMeshComponent* BirdMesh;
 
 	// Spline reference variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
@@ -42,23 +34,16 @@ public:
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
-	//Bird particle system
-	UPROPERTY(EditAnywhere)
-		UParticleSystemComponent* FireParticleSystem;
-
 protected:
 
-	/** Bound to the movement bool */
-	void Move();
-
-	/** Bound to the thrust axis */
-	/*void MoveForwardInput(float Val);*/
-
-	/** Bound to the vertical axis */
+	/** Bound to the forward vector of the character */
 	void MoveUpInput(float Val);
 
-	/** Bound to the horizontal axis */
-	void MoveRightInput(float Val);
+	/** Bound to the control rotation pitch (camera too) */
+	void PitchInput(float Val);
+
+	/** Bound to the control rotation yaw (camera too) */
+	void YawInput(float Val);
 
 	// Begin AActor overrides
 	virtual void BeginPlay();
@@ -68,47 +53,38 @@ protected:
 
 private:
 
-	/** Move is set to false by default */
-	bool move = false;
-
 	/** Spline movement bool, false by default */
 	bool OnSpline = false;
 
-	/** Spline location vector */
-	FVector SplineLoc = FVector(0.0f, 0.0f, 0.0f);
+	// FLYING MOVEMENT
+	/** Flight Velocity Lift Multiplier Curve */
+	UPROPERTY(EditAnywhere, Category = Flight)
+		UCurveFloat* VelCurve;
+
+	/** Flight Angle Lift Multiplier Curve */
+	UPROPERTY(EditAnywhere, Category = Flight)
+		UCurveFloat* AngCurve;
 
 	/** How quickly forward speed changes */
-	UPROPERTY(Category = Movement, EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, Category = Flight)
 		float Acceleration;
+
+	/** The force of gravity */
+	UPROPERTY(EditDefaultsOnly, Category = Flight)
+		float GravityConstant;
+
+	// This is used when calculating the inclination of the character
+	float controlInclination;
+
+	// This is used to control the lift of the bird
+	float liftNormalized;
+
+	// This is the flyspeedHold variable for handling gliding (default value is 1.0f)
+	float flyspeedHold = 1.0f;
 
 	/** How quickly pawn can steer */
 	UPROPERTY(Category = Movement, EditAnywhere)
 		float TurnSpeed;
-
-	/** Max forward speed */
-	UPROPERTY(Category = Movement, EditAnywhere)
-		float MaxSpeed;
-
-	/** Min forward speed */
-	UPROPERTY(Category = Movement, EditAnywhere)
-		float MinSpeed;
-
-	/** Camera lag speed (how quickly camera moves towards target socket */
-	UPROPERTY(Category = Camera, EditAnywhere)
-		float CamLag;
-
-	/** Current forward speed */
-	UPROPERTY(Category = Movement, EditAnywhere)
-	float CurrentForwardSpeed;
-
-	/** Current yaw speed */
-	float CurrentYawSpeed;
-
-	/** Current pitch speed */
-	float CurrentPitchSpeed;
-
-	/** Current roll speed */
-	float CurrentRollSpeed;
 
 protected:
 	// Called to bind functionality to input
