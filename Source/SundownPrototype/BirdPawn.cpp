@@ -25,7 +25,7 @@ ABirdPawn::ABirdPawn()
 	//// Create a follow camera
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	mCamera->SetupAttachment(mCameraSpringArm, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	mCamera->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
+	mCamera->bUsePawnControlRotation = true;
 
 	// Set handling parameters
 	Acceleration = 1.0f;
@@ -41,8 +41,6 @@ void ABirdPawn::BeginPlay()
 	GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 90.0f);
 	GetCharacterMovement()->MaxAcceleration = 600.0f;
-	GetCharacterMovement()->MaxWalkSpeed = 4000.0f;
-	//GetCharacterMovement()->Velocity = FVector(0.0f, 0.0f, 0.0f);
 }
 
 void ABirdPawn::Tick(float DeltaSeconds)
@@ -51,21 +49,30 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	// Step one: Set liftNormalized
 
 	// A) Calculate control inclination
-	FVector controlForwardVec = UKismetMathLibrary::GetUpVector(FRotator(GetControlRotation()));
-	controlInclination = FVector::DotProduct(controlForwardVec, GetActorForwardVector()); // control inclination ranges from -1 to 1 based on the rotational difference between camera up vector and actor forward vector
+	FVector controlUpVec = UKismetMathLibrary::GetUpVector(FRotator(GetControlRotation()));
+	controlInclination = FVector::DotProduct(controlUpVec, GetActorForwardVector()); // control inclination ranges from -1 to 1 based on the rotational difference between camera up vector and actor forward vector
 
-	// B) Get value from angle curve using control inclination
+																					 // B) Get value from angle curve using control inclination
 	float AngCurveVal = AngCurve->GetFloatValue(FMath::Acos(controlInclination) - 90.0f);
 
 	// C) Get value from velocity curve
 	FVector VelocityVec = GetCharacterMovement()->Velocity;
-	VelocityVec.Z = FMath::Clamp<float>(VelocityVec.Z, -4000, 0); // Clamp Z within appropriate velocity as this is downwards movement
+	VelocityVec.Z = FMath::Clamp<float>(VelocityVec.Z, -4000, 0); // Clamp Z within appropriate velocity as this deal with downwards movement
 	float VelCurveVal = VelCurve->GetFloatValue(VelocityVec.Size());
 
 	// D) Calculate lift normalized by multiplying the flight angle curve and velocity curve values
 	liftNormalized = VelCurveVal * AngCurveVal;
+	//UE_LOG(LogTemp,Warning,TEXT("Lift normalized: %f"), liftNormalized);
 
-	// Step two: set flyspeedHold
+	// Step two: GRAVITY!
+
+	// A) Create force against gravity
+	float x = GetCharacterMovement()->Mass * GravityConstant * liftNormalized;
+	FVector force = FVector(0.0f, 0.0f, x);
+	// B) Add force
+	GetCharacterMovement()->AddForce(force);
+
+	// Step three: set flyspeedHold
 
 	// A) Calculate mapRangeClamped
 	float mapRangeClamped;
@@ -77,41 +84,29 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	// B) FInterp flyspeedHold towards mapRangeClamped
 	FMath::FInterpTo(flyspeedHold, mapRangeClamped, DeltaSeconds, FMath::Abs(controlInclination) + 0.5f);
 
-	// C) Get direction to fly in (forward vector of the control rotation's Z component)
-	FRotator flyDirection = FRotator(0.0f, 0.0f, GetControlRotation().GetComponentForAxis(EAxis::Z));
-	FVector flyForwardVector = UKismetMathLibrary::GetForwardVector(flyDirection);
-	
-	// D) Add the movement input in the correct direction, using flyspeedHold as weighting to slow down over time if no input
+	// C) Get direction to fly in
+	FVector flyForwardVector = UKismetMathLibrary::GetForwardVector(GetControlRotation());
+
+	// D) Add the movement input in the correct direction, using flyspeedHold as weighting
 	AddMovementInput(flyForwardVector, flyspeedHold);
 
-	// Step three: GRAVITY?
+	// ^ ^ ^ DONE ^ ^ ^ /////////////////////////////////////////////////////////////
 
-	// A) Create force against gravity
-	float x = GetCharacterMovement()->Mass * GravityConstant * liftNormalized;
-	FVector force = FVector(0.0f, 0.0f, x);
-	// B) Add force
-	GetCharacterMovement()->AddForce(force);
+	//UE_LOG(LogTemp,Warning,TEXT("FlyDirection: %s"), *flyDirection.ToString());
+	//UE_LOG(LogTemp,Warning,TEXT("MovementVector: %s"), *flyForwardVector.ToString());
+	//UE_LOG(LogTemp,Warning,TEXT("FlySpeedHold: %f"), flyspeedHold);
+	UE_LOG(LogTemp, Warning, TEXT("Control rotation: %s"), *GetControlRotation().ToString());
 
-	// Step four: set angle of velocity
-
-	// A) Setup - from actor rotation and velocity
-	FVector UpInverse = UKismetMathLibrary::GetUpVector(GetActorRotation()) - 1;
-	FVector VelocityNormalized = GetCharacterMovement()->Velocity;
-	VelocityNormalized.Normalize();
-
-	// B) Perform dot product, set velocityAngle
-	velocityAngle = FMath::Acos(FVector::DotProduct(VelocityNormalized, UpInverse) - 90);
-
-	// Step five: Set flyingVelocity???
-	float flyingVelocity = GetCharacterMovement()->Velocity.Size();
-
-	// Step six: set rotation of actor
-
-	// Calculate change in rotation
+	// Calculate change in yaw rotation
 	FVector DirVelocity = FVector(GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, 0.0f);
-	FRotator DirRot = UKismetMathLibrary::MakeRotationFromAxes(FVector(DirVelocity), FVector(GetActorRightVector()), FVector(0.0f, 0.0f, 1.0f));
-	DirRot = FRotator(0.0f, 0.0f, DirRot.GetComponentForAxis(EAxis::Z));
-	SetActorRelativeRotation(DirRot);
+	FRotator DirRot = UKismetMathLibrary::MakeRotationFromAxes(DirVelocity, GetActorRightVector(), FVector(0.0f, 0.0f, 1.0f));
+	FRotator NewDirRot = FRotator(0.0f, DirRot.Yaw, 0.0f);
+	SetActorRelativeRotation(NewDirRot);
+
+	// Set velocity
+	float ZVel = FMath::FInterpTo(GetCharacterMovement()->Velocity.Z, (controlInclination * -980 * FMath::Abs(controlInclination)), DeltaSeconds, 4);
+	FVector newVel = FVector(GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, ZVel);
+	GetCharacterMovement()->Velocity.Set(newVel.X, newVel.Y, newVel.Z);
 
 	// Call any parent class Tick implementation
 	Super::Tick(DeltaSeconds);
@@ -128,10 +123,6 @@ void ABirdPawn::NotifyHit(class UPrimitiveComponent* MyComp, class AActor* Other
 		SplineBounds = Cast<UStaticMeshComponent>(Hit.GetComponent());
 		UE_LOG(LogTemp, Warning, TEXT("SplineCyl hit! 2/2"));
 	}
-
-	// Deflect along the surface when we collide.
-	FRotator CurrentRotation = GetActorRotation();
-	SetActorRotation(FQuat::Slerp(CurrentRotation.Quaternion(), HitNormal.ToOrientationQuat(), 0.04f));
 }
 
 // Called to bind functionality to input
@@ -142,7 +133,6 @@ void ABirdPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	// Bind our control axis' to callback functions'
 	PlayerInputComponent->BindAxis("MoveUp", this, &ABirdPawn::MoveUpInput);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ABirdPawn::MoveRightInput);
 	PlayerInputComponent->BindAxis("PitchInput", this, &ABirdPawn::PitchInput);
 	PlayerInputComponent->BindAxis("YawInput", this, &ABirdPawn::YawInput);
 }
@@ -158,24 +148,10 @@ void ABirdPawn::YawInput(float Val) {
 void ABirdPawn::MoveUpInput(float Val)
 {
 	if (OnSpline) {
-			SetActorLocation(FVector(SplineBounds->GetComponentLocation()));
-	}
-	else {
-		//AddMovementInput(GetActorForwardVector(), Acceleration * Val);
-	}
-}
-
-void ABirdPawn::MoveRightInput(float Val)
-{
-	if (OnSpline) {
 		SetActorLocation(FVector(SplineBounds->GetComponentLocation()));
 	}
 	else {
-		// Target yaw speed is based on input
-		float TargetYawSpeed = (Val * TurnSpeed);
-
-		// Smoothly interpolate to target yaw speed
-		CurrentYawSpeed = FMath::FInterpTo(CurrentYawSpeed, TargetYawSpeed, GetWorld()->GetDeltaSeconds(), 2.f);
-		//AddMovementInput(GetActorRightVector(), Acceleration * Val);
+		AddMovementInput(UKismetMathLibrary::GetForwardVector(GetControlRotation()) * Val);
 	}
 }
+

@@ -22,37 +22,28 @@ public:
 	// Sets default values for this character's properties
 	ABirdPawn();
 
-	// Soft collision sphere
-	//UPROPERTY(EditAnywhere, Category = Collision)
-	//	UStaticMeshComponent* CollisionSphere;
-
-	//// Skeletal mesh for bird
-	//UPROPERTY(EditAnywhere)
-	//	USkeletalMeshComponent* BirdMesh;
-
 	// Spline reference variables
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Spline)
 		TSubclassOf<class AActor>  SplineClassType;
 	USplineComponent* Spline; // the spline
 	UStaticMeshComponent* SplineBounds; // the spline bounds
 
-	// Camera components
+										// Camera components
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
-	//Bird particle system
-	/*UPROPERTY(EditAnywhere)
-		UParticleSystemComponent* FireParticleSystem;*/
-
 protected:
 
-	/** Bound to the vertical axis */
+	/** Bound to the forward vector of the character */
 	void MoveUpInput(float Val);
 
-	/** Bound to the horizontal axis */
-	void MoveRightInput(float Val);
+	/** Bound to the control rotation pitch (camera too) */
+	void PitchInput(float Val);
+
+	/** Bound to the control rotation yaw (camera too) */
+	void YawInput(float Val);
 
 	// Begin AActor overrides
 	virtual void BeginPlay();
@@ -61,9 +52,6 @@ protected:
 	// End AActor overrides
 
 private:
-
-	/** Move is set to false by default */
-	bool move = false;
 
 	/** Spline movement bool, false by default */
 	bool OnSpline = false;
@@ -85,9 +73,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Flight)
 		float GravityConstant;
 
-	/** The angle of actor's velocity */
-	float velocityAngle = 0.0f;
-
 	// This is used when calculating the inclination of the character
 	float controlInclination;
 
@@ -97,46 +82,13 @@ private:
 	// This is the flyspeedHold variable for handling gliding (default value is 1.0f)
 	float flyspeedHold = 1.0f;
 
-
-
-
-
-
 	/** How quickly pawn can steer */
 	UPROPERTY(Category = Movement, EditAnywhere)
 		float TurnSpeed;
 
-	///** Max forward speed */
-	//UPROPERTY(Category = Movement, EditAnywhere)
-	//	float MaxSpeed;
-
-	///** Min forward speed */
-	//UPROPERTY(Category = Movement, EditAnywhere)
-	//	float MinSpeed;
-
-	///** Camera lag speed (how quickly camera moves towards target socket */
-	//UPROPERTY(Category = Camera, EditAnywhere)
-	//	float CamLag;
-
-	///** Current forward speed */
-	//UPROPERTY(Category = Movement, EditAnywhere)
-	//	float CurrentForwardSpeed;
-
-	//** Current yaw speed */
-	float CurrentYawSpeed = 0.0f;
-
-	///** Current pitch speed */
-	//float CurrentPitchSpeed;
-
-	///** Current roll speed */
-	//float CurrentRollSpeed;
-
 protected:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	void PitchInput(float Val);
-	void YawInput(float Val);
 
 public:
 	/** Returns CameraSpringArm subobject **/
