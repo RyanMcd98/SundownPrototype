@@ -28,7 +28,7 @@ ABirdPawn::ABirdPawn()
 	mCamera->bUsePawnControlRotation = true;
 
 	// Set handling parameters
-	Acceleration = 1.0f;
+	Acceleration = 10.0f;
 }
 
 void ABirdPawn::BeginPlay()
@@ -37,9 +37,9 @@ void ABirdPawn::BeginPlay()
 
 	// Set relevant character movement properties
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-	GetCharacterMovement()->AirControl = 100.0f;
+	GetCharacterMovement()->AirControl = 500.0f;
 	GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 90.0f);
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 90.0f, 0.0f);
 	GetCharacterMovement()->MaxAcceleration = 600.0f;
 }
 
@@ -52,7 +52,7 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	FVector controlUpVec = UKismetMathLibrary::GetUpVector(FRotator(GetControlRotation()));
 	controlInclination = FVector::DotProduct(controlUpVec, GetActorForwardVector()); // control inclination ranges from -1 to 1 based on the rotational difference between camera up vector and actor forward vector
 
-																					 // B) Get value from angle curve using control inclination
+	// B) Get value from angle curve using control inclination
 	float AngCurveVal = AngCurve->GetFloatValue(FMath::Acos(controlInclination) - 90.0f);
 
 	// C) Get value from velocity curve
@@ -99,14 +99,14 @@ void ABirdPawn::Tick(float DeltaSeconds)
 
 	// Calculate change in yaw rotation
 	FVector DirVelocity = FVector(GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, 0.0f);
-	FRotator DirRot = UKismetMathLibrary::MakeRotationFromAxes(DirVelocity, GetActorRightVector(), FVector(0.0f, 0.0f, 1.0f));
+	FRotator DirRot = UKismetMathLibrary::MakeRotationFromAxes(DirVelocity, UKismetMathLibrary::GetRightVector(GetControlRotation()), FVector(0.0f, 0.0f, 1.0f));
 	FRotator NewDirRot = FRotator(0.0f, DirRot.Yaw, 0.0f);
 	SetActorRelativeRotation(NewDirRot);
 
 	// Set velocity
 	float ZVel = FMath::FInterpTo(GetCharacterMovement()->Velocity.Z, (controlInclination * -980 * FMath::Abs(controlInclination)), DeltaSeconds, 4);
 	FVector newVel = FVector(GetCharacterMovement()->Velocity.X, GetCharacterMovement()->Velocity.Y, ZVel);
-	GetCharacterMovement()->Velocity.Set(newVel.X, newVel.Y, newVel.Z);
+	GetCharacterMovement()->Velocity.SetComponentForAxis(EAxis::Z, newVel.Z);
 
 	// Call any parent class Tick implementation
 	Super::Tick(DeltaSeconds);
@@ -151,7 +151,7 @@ void ABirdPawn::MoveUpInput(float Val)
 		SetActorLocation(FVector(SplineBounds->GetComponentLocation()));
 	}
 	else {
-		AddMovementInput(UKismetMathLibrary::GetForwardVector(GetControlRotation()) * Val);
+		
 	}
 }
 
