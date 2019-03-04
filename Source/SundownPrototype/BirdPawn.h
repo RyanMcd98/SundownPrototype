@@ -1,5 +1,3 @@
-// Developed by Gary Whittle and Scott Douglas, based on Unreal's Flight Example Project
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,10 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Particles/ParticleSystemComponent.h"
 #include "BirdPawn.generated.h"
 
 UCLASS()
@@ -27,17 +23,14 @@ public:
 		TSubclassOf<class AActor>  SplineClassType;
 	USplineComponent* Spline; // the spline
 	UStaticMeshComponent* SplineBounds; // the spline bounds
-
-										// Camera components
+	
+	// Camera components
 	UPROPERTY(EditAnywhere)
 		USpringArmComponent* mCameraSpringArm;
 	UPROPERTY(EditAnywhere)
 		UCameraComponent* mCamera;
 
 protected:
-
-	/** Bound to the forward vector of the character */
-	void MoveUpInput(float Val);
 
 	/** Bound to the control rotation pitch (camera too) */
 	void PitchInput(float Val);
@@ -74,17 +67,14 @@ private:
 		float GravityConstant;
 
 	// This is used when calculating the inclination of the character
-	float controlInclination;
-
+	float InclinationAmount;
 	// This is used to control the lift of the bird
-	float liftNormalized;
+	float LiftAmount;
+	// This is the flyspeedHold variable for handling movement (default value is 1.0f)
+	float SpeedHoldAmount = 1.0f;
 
-	// This is the flyspeedHold variable for handling gliding (default value is 1.0f)
-	float flyspeedHold = 1.0f;
-
-	/** How quickly pawn can steer */
-	UPROPERTY(Category = Movement, EditAnywhere)
-		float TurnSpeed;
+	// Calculate flight function
+	void CalculateFlight(float DeltaSeconds);
 
 protected:
 	// Called to bind functionality to input
