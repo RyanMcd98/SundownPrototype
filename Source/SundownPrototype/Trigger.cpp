@@ -30,14 +30,15 @@ ATrigger::ATrigger()
 	{
 		FadeOut = SequenceAsset.Object;
 	}
+
+	NewLocation = FVector(BrazierMesh->GetComponentLocation().X, BrazierMesh->GetComponentLocation().Y, BrazierMesh->GetComponentLocation().Z + 100);
+	NewRotation = BrazierMesh->GetComponentRotation();
 }
 
 // Called when the game starts or when spawned
 void ATrigger::BeginPlay()
 {
 	Super::BeginPlay();
-
-	this->bEditable = true;
 }
 
 //Called when character overlaps with collision box
@@ -52,14 +53,15 @@ void ATrigger::OnOverlapBegin(class AActor* OverlappedActor, class AActor* Other
 			SequencePlayer->Play();
 		}
 
-		Cinder = Cast<ACharacter>(OtherActor);
+		// Cinder = Cast<ACharacter>(OtherActor);
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATrigger::SitOnBrazier, 3.0f, false);
 	}
 }
 
 void ATrigger::SitOnBrazier()
 {
-	Cinder->SetActorLocation(FVector(BrazierMesh->GetComponentLocation().X, BrazierMesh->GetComponentLocation().Y, BrazierMesh->GetComponentLocation().Z + 100));
-	Cinder->SetActorRotation(BrazierMesh->GetComponentRotation());
+	//Cinder->SetActorLocation(NewLocation);
+	//Cinder->SetActorRotation(NewRotation);
+	Cinder->SetActorLocationAndRotation(NewLocation, NewRotation, false, 0, ETeleportType::None);
 	GetWorldTimerManager().ClearTimer(TimerHandle);
 }

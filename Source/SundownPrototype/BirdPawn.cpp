@@ -50,7 +50,8 @@ void ABirdPawn::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 }
 
-void ABirdPawn::CalculateFlight(float DeltaSeconds) {
+void ABirdPawn::CalculateFlight(float DeltaSeconds) 
+{
 	// Step 1: Calculate LiftAmount
 	// A) Calculate control inclination
 	FVector controlUpVec = UKismetMathLibrary::GetUpVector(FRotator(GetControlRotation()));

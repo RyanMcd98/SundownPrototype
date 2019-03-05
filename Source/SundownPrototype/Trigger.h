@@ -28,10 +28,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = Brazier)
 		UStaticMeshComponent* BrazierMesh;
 
-	// overlap begin function
+	//Overlap begin function
 	UFUNCTION()
 		void OnOverlapBegin(class AActor* OverlappedActor, class AActor* OtherActor);
 
+	//Function to make bird sit on the brazier
 	UFUNCTION()
 		void SitOnBrazier();
 
@@ -56,4 +57,12 @@ public:
 	//Set location timer handle
 	UPROPERTY()
 		FTimerHandle TimerHandle;
+
+	//New location to set the bird to (location of brazier)
+	UPROPERTY(EditAnywhere, Category = NewLocation)
+		FVector NewLocation;
+
+	//New rotation to set the bird to (rotation of brazier)
+	UPROPERTY(EditAnywhere, Category = NewRotation)
+		FRotator NewRotation;
 };

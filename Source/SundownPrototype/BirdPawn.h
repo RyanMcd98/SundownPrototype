@@ -85,4 +85,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraArm() const { return mCameraSpringArm; }
 	/** Returns Camera subobject **/
 	FORCEINLINE class UCameraComponent* GetCamera() const { return mCamera; }
+
+	bool allowedToFly = true;
 };
