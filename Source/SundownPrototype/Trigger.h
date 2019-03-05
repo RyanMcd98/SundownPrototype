@@ -32,19 +32,11 @@ public:
 	UFUNCTION()
 		void OnOverlapBegin(class AActor* OverlappedActor, class AActor* OtherActor);
 
-	// overlap end function
-	UFUNCTION()
-		void OnOverlapEnd(class AActor* OverlappedActor, class AActor* OtherActor);
-
 	UFUNCTION()
 		void SitOnBrazier();
 
 	//Reference to player
 	ACharacter* Cinder;
-
-	//Trigger volume that will trigger sequence
-	//UPROPERTY(EditAnywhere, Category = CollisionBox)
-	//ATriggerVolume* CollisionTrigger;
 
 	//Collision box that will trigger sequence
 	UPROPERTY(EditAnywhere, Category = CollisionBox)

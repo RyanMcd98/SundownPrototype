@@ -53,7 +53,7 @@ void ATrigger::OnOverlapBegin(class AActor* OverlappedActor, class AActor* Other
 		}
 
 		Cinder = Cast<ACharacter>(OtherActor);
-		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATrigger::SitOnBrazier, 3.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATrigger::SitOnBrazier, 3.0f, false);
 	}
 }
 
